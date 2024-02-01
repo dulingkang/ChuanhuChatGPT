@@ -702,7 +702,7 @@ def update_chuanhu():
         status = '<span id="update-status" class="hideK">failure</span>'
         return gr.Markdown.update(
             value=i18n(
-                "更新失败，请尝试[手动更新](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#手动更新)"
+                "更新失败，请尝试[手动更新](https://github.com/GaiZhenbiao/SDBChatGPT/wiki/使用教程#手动更新)"
             )
             + status
         )
@@ -816,11 +816,11 @@ def get_history_filepath(username):
 def beautify_err_msg(err_msg):
     if "insufficient_quota" in err_msg:
         return i18n(
-            "剩余配额不足，[进一步了解](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98#you-exceeded-your-current-quota-please-check-your-plan-and-billing-details)"
+            "剩余配额不足，[进一步了解](https://github.com/GaiZhenbiao/SDBChatGPT/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98#you-exceeded-your-current-quota-please-check-your-plan-and-billing-details)"
         )
     if "The model `gpt-4` does not exist" in err_msg:
         return i18n(
-            "你没有权限访问 GPT4，[进一步了解](https://github.com/GaiZhenbiao/ChuanhuChatGPT/issues/843)"
+            "你没有权限访问 GPT4，[进一步了解](https://github.com/GaiZhenbiao/SDBChatGPT/issues/843)"
         )
     if "Resource not found" in err_msg:
         return i18n("请查看 config_example.json，配置 Azure OpenAI")
@@ -942,7 +942,7 @@ class SetupWizard:
             + colorama.Style.RESET_ALL
             + i18n("中，包含了可用设置项及其简要说明。请查看 wiki 获取更多信息：")
             + colorama.Fore.CYAN
-            + "https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki"
+            + "https://github.com/GaiZhenbiao/SDBChatGPT/wiki"
             + colorama.Style.RESET_ALL
         )
         print(
@@ -1294,12 +1294,12 @@ def setup_wizard():
             ],
             '是否设置机器人头像和用户头像？可填写本地或网络图片链接，或者"none"（不显示头像）。',
         )
-        # 川虎助理
+        # 超级数据库助理
         wizard.set(
             [
                 ConfigItem(
                     "default_chuanhu_assistant_model",
-                    "川虎助理使用的模型",
+                    "超级数据库助理使用的模型",
                     type=ConfigType.String,
                     default="gpt-4",
                 ),
@@ -1324,7 +1324,7 @@ def setup_wizard():
                     type=ConfigType.String,
                 ),
             ],
-            "是否设置川虎助理？如果不设置，仍可设置川虎助理。如果设置，可以使用川虎助理Pro模式。",
+            "是否设置超级数据库助理？如果不设置，仍可设置超级数据库助理。如果设置，可以使用超级数据库助理Pro模式。",
         )
         # 文档处理与显示
         wizard.set(

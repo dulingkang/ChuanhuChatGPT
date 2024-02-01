@@ -1,5 +1,5 @@
 
-// ChuanhuChat core javascript
+// SDBChat core javascript
 
 const MAX_HISTORY_LENGTH = 32;
 
@@ -25,8 +25,8 @@ var updateToast = null;
 var sendBtn = null;
 var cancelBtn = null;
 var sliders = null;
-var updateChuanhuBtn = null;
-var rebootChuanhuBtn = null;
+var updateSDBBtn = null;
+var rebootSDBBtn = null;
 var statusDisplay = null;
 
 var historySelector = null;
@@ -82,8 +82,8 @@ function initialize() {
     sendBtn = gradioApp().getElementById("submit-btn");
     cancelBtn = gradioApp().getElementById("cancel-btn");
     sliders = gradioApp().querySelectorAll('input[type="range"]');
-    updateChuanhuBtn = gradioApp().getElementById("update-chuanhu-btn");
-    rebootChuanhuBtn = gradioApp().getElementById("reboot-chuanhu-btn");
+    updateSDBBtn = gradioApp().getElementById("update-chuanhu-btn");
+    rebootSDBBtn = gradioApp().getElementById("reboot-chuanhu-btn");
     statusDisplay = gradioApp().querySelector('#status-display');
 
     historySelector = gradioApp().querySelector('#history-select-dropdown');
@@ -361,7 +361,7 @@ function chatbotContentChanged(attempt = 1, force = false) {
             updateCheckboxes();
             bindFancyBox();
 
-            gradioApp().querySelectorAll('#chuanhu-chatbot .message-wrap .message.bot').forEach(addChuanhuButton);
+            gradioApp().querySelectorAll('#chuanhu-chatbot .message-wrap .message.bot').forEach(addSDBButton);
 
             if (chatbotIndicator.classList.contains('hide')) { // generation finished
                 setLatestMessage();
@@ -453,7 +453,7 @@ function makeML(str) {
     l = l.substring(l.indexOf("/*") + 3, l.lastIndexOf("*/"))
     return l
 }
-let ChuanhuInfo = function () {
+let SDBInfo = function () {
     /*
    ________                      __             ________          __
   / ____/ /_  __  ______ _____  / /_  __  __   / ____/ /_  ____ _/ /_
@@ -461,13 +461,13 @@ let ChuanhuInfo = function () {
 / /___/ / / / /_/ / /_/ / / / / / / / /_/ /  / /___/ / / / /_/ / /_
 \____/_/ /_/\__,_/\__,_/_/ /_/_/ /_/\__,_/   \____/_/ /_/\__,_/\__/
 
-   川虎Chat (Chuanhu Chat) - GUI for ChatGPT API and many LLMs
+   超级数据库Chat (SDB Chat) - GUI for ChatGPT API and many LLMs
  */
 }
 let description = `
-© 2023 Chuanhu, MZhao, Keldos
-GitHub repository: [https://github.com/GaiZhenbiao/ChuanhuChatGPT]\n
+© 2023 SDB, MZhao, Keldos
+GitHub repository: [https://github.com/GaiZhenbiao/SDBChatGPT]\n
 Enjoy our project!\n
 `
-console.log(`%c${makeML(ChuanhuInfo)}`,styleTitle1);
+console.log(`%c${makeML(SDBInfo)}`,styleTitle1);
 console.log(`%c${description}`, styleDesc1);

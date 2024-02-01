@@ -5,7 +5,7 @@ import gradio as gr
 
 from . import shared
 
-# with open("./assets/ChuanhuChat.js", "r", encoding="utf-8") as f, \
+# with open("./assets/SDBChat.js", "r", encoding="utf-8") as f, \
 #     open("./assets/external-scripts.js", "r", encoding="utf-8") as f1:
 #     customJS = f.read()
 #     externalScripts = f1.read()
@@ -58,9 +58,9 @@ def reload_javascript():
     js += '<script async src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />'
     
     meta = """
-        <meta name="apple-mobile-web-app-title" content="川虎 Chat">
+        <meta name="apple-mobile-web-app-title" content="超级数据库 Chat">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="application-name" content="川虎 Chat">
+        <meta name="application-name" content="超级数据库 Chat">
         <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover'>
         <meta name="theme-color" content="#ffffff">
 

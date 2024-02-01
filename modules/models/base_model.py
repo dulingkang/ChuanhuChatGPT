@@ -83,7 +83,7 @@ def get_action_description(text):
         return ""
 
 
-class ChuanhuCallbackHandler(BaseCallbackHandler):
+class SDBCallbackHandler(BaseCallbackHandler):
     def __init__(self, callback) -> None:
         """Initialize callback handler."""
         self.callback = callback
@@ -143,7 +143,7 @@ class ModelType(Enum):
     MOSS = 5
     YuanAI = 6
     Minimax = 7
-    ChuanhuAgent = 8
+    SDBAgent = 8
     GooglePaLM = 9
     LangchainChat = 10
     Midjourney = 11
@@ -180,8 +180,8 @@ class ModelType(Enum):
             model_type = ModelType.YuanAI
         elif "minimax" in model_name_lower:
             model_type = ModelType.Minimax
-        elif "川虎助理" in model_name_lower:
-            model_type = ModelType.ChuanhuAgent
+        elif "超级数据库助理" in model_name_lower:
+            model_type = ModelType.SDBAgent
         elif "palm" in model_name_lower:
             model_type = ModelType.GooglePaLM
         elif "midjourney" in model_name_lower:
@@ -1092,7 +1092,7 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
 
         def thread_func():
             self.model(
-                messages=history, callbacks=[ChuanhuCallbackHandler(it.callback)]
+                messages=history, callbacks=[SDBCallbackHandler(it.callback)]
             )
             it.finish()
 

@@ -30,7 +30,7 @@ from bs4 import BeautifulSoup
 from threading import Thread, Condition
 from collections import deque
 
-from .base_model import BaseLLMModel, CallbackToIterator, ChuanhuCallbackHandler
+from .base_model import BaseLLMModel, CallbackToIterator, SDBCallbackHandler
 from ..config import default_chuanhu_assistant_model
 from ..presets import SUMMARIZE_PROMPT, i18n
 from ..index_func import construct_index
@@ -51,7 +51,7 @@ class WebAskingInput(BaseModel):
     question: str = Field(description="Question that you want to know the answer to, based on the webpage's content.")
 
 
-class ChuanhuAgent_Client(BaseLLMModel):
+class SDBAgent_Client(BaseLLMModel):
     def __init__(self, model_name, openai_api_key, user_name="") -> None:
         super().__init__(model_name=model_name, user=user_name)
         self.text_splitter = TokenTextSplitter(chunk_size=500, chunk_overlap=30)
@@ -203,7 +203,7 @@ class ChuanhuAgent_Client(BaseLLMModel):
     def get_answer_stream_iter(self):
         question = self.history[-1]["content"]
         it = CallbackToIterator()
-        manager = BaseCallbackManager(handlers=[ChuanhuCallbackHandler(it.callback)])
+        manager = BaseCallbackManager(handlers=[SDBCallbackHandler(it.callback)])
         def thread_func():
             tools = self.tools
             if self.index is not None:

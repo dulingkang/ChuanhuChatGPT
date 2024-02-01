@@ -85,7 +85,7 @@ function bindFancyBox() {
     });
 }
 
-function rebootingChuanhu() {
+function rebootingSDB() {
     reloadSpinner = new Spin.Spinner({color:'#06AE56',lines:9}).spin();
     pageInfo = document.createElement('div');
     pageInfo.appendChild(reloadSpinner.el);

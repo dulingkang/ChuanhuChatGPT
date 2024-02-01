@@ -108,7 +108,7 @@ async function updateLatestVersion() {
             const latestVersionTime = (new Date(data.created_at)).getTime();
             if (latestVersionTime) {
                 const latestVersionInfo = `<a href="https://github.com/gaizhenbiao/chuanhuchatgpt/releases/latest" target="_blank" id="latest-version-title" style="text-decoration: none;">${latestVersion}</a>`
-                const manualUpdateInfo = `<a href="https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#手动更新" target="_blanks" style="text-decoration: none;">manual update</a>`
+                const manualUpdateInfo = `<a href="https://github.com/GaiZhenbiao/SDBChatGPT/wiki/使用教程#手动更新" target="_blanks" style="text-decoration: none;">manual update</a>`
                 if (localVersionTime == 0) {
                     const infoMessage = `Local version check failed. \nBut latest revision is ${latestVersionInfo}. \n\nWhen Update needed, \n- If you are using Docker, try to update package. \n- If you didn't use git, try ${manualUpdateInfo}.`
                     versionInfoElement.innerHTML = marked.parse(infoMessage, {mangle: false, headerIds: false});
@@ -150,8 +150,8 @@ function getUpdateInfo() {
 
 var updateSpinner = null;
 
-function bgUpdateChuanhu() {
-    updateChuanhuBtn.click();
+function bgUpdateSDB() {
+    updateSDBBtn.click();
     updatingInfoElement.innerText = i18n(updatingMsg_i18n);
     var updatingSpinner = document.getElementById('updating-spinner');
     try {
