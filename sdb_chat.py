@@ -579,7 +579,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     user_input.submit(**get_usage_args)
 
     # user_input.submit(auto_name_chat_history, [current_model, user_question, chatbot, user_name], [historySelectList], show_progress=False)
-
+    print(f"{transfer_input_args=}")
     submitBtn.click(**transfer_input_args).then(**chatgpt_predict_args,
                                                 api_name="predict").then(**end_outputing_args).then(**auto_name_chat_history_args)
     submitBtn.click(**get_usage_args)

@@ -39,6 +39,21 @@ from ..utils import *
 from .. import shared
 from ..config import retrieve_proxy
 
+from superduperdb import superduper
+
+db = superduper('mysql://root:1@localhost/power')
+from superduperdb.backends.ibis.query import Table
+from superduperdb.backends.ibis.field_types import dtype
+from superduperdb import Schema
+
+schema = Schema('company-schema', fields={'name': dtype('str'), 'capacity': dtype('float'), 'ad_wind_speed': dtype('float')})
+
+db = superduper()
+
+t = Table('company', schema=schema)
+
+db.add(t)
+
 
 class CallbackToIterator:
     def __init__(self):
