@@ -23,7 +23,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 import pandas as pd
 import colorama
-
+from datetime import datetime
 from modules.presets import *
 from . import shared
 from modules.config import retrieve_proxy, hide_history_when_not_logged_in
@@ -43,7 +43,8 @@ def predict(current_model, *args):
 
 
 def billing_info(current_model):
-    return current_model.billing_info()
+    if current_model is not None:
+        return current_model.billing_info()
 
 
 def set_key(current_model, *args):
@@ -141,7 +142,8 @@ def set_user_identifier(current_model, *args):
 
 
 def set_single_turn(current_model, *args):
-    current_model.set_single_turn(*args)
+    if current_model is not None:
+        current_model.set_single_turn(*args)
 
 
 def handle_file_upload(current_model, *args):
@@ -1410,3 +1412,11 @@ def reboot_chuanhu():
     import sys
     print(colorama.Back.GREEN + i18n("正在尝试重启...") + colorama.Style.RESET_ALL)
     os.execl(sys.executable, sys.executable, *sys.argv)
+
+
+def handle_sheet(sheet):
+  dt = None
+  for row in worksheet.iter_rows(min_row=2, values_only=True):
+    if isinstance(row[0], datetime):
+      dt = row[0]
+    

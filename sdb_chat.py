@@ -26,7 +26,6 @@ gr.Chatbot.postprocess = postprocess
 # with open("web_assets/css/SDBChat.css", "r", encoding="utf-8") as f:
 #     SDBChatCSS = f.read()
 
-
 def create_new_model():
     return get_model(model_name=MODELS[DEFAULT_MODEL], access_key=my_api_key)[0]
 
@@ -255,11 +254,11 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         with gr.Accordion(label=i18n("知识库"), open=True, elem_id="gr-kb-accordion"):
                             use_websearch_checkbox = gr.Checkbox(label=i18n(
                                 "使用在线搜索"), value=False, elem_classes="switch-checkbox", elem_id="gr-websearch-cb", visible=False)
-                            index_files = gr.Files(label=i18n(
-                                "上传"), type="file", file_types=[".pdf", ".docx", ".pptx", ".epub", ".xlsx", ".txt", "text", "image"], elem_id="upload-index-file")
+                            index_files = gr.File(label=i18n(
+                                "上传"), file_count='single', type="file", file_types=[".xlsx"], elem_id="upload-index-file")
                             # two_column = gr.Checkbox(label=i18n(
                             #     "双栏pdf"), value=advance_docs["pdf"].get("two_column", False))
-                            # summarize_btn = gr.Button(i18n("总结"))
+                            summarize_btn = gr.Button(i18n("保存"))
                             # TODO: 公式ocr
                             # formula_ocr = gr.Checkbox(label=i18n("识别公式"), value=advance_docs["pdf"].get("formula_ocr", False))
 
@@ -579,17 +578,17 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     user_input.submit(**get_usage_args)
 
     # user_input.submit(auto_name_chat_history, [current_model, user_question, chatbot, user_name], [historySelectList], show_progress=False)
-    print(f"{transfer_input_args=}")
+
     submitBtn.click(**transfer_input_args).then(**chatgpt_predict_args,
                                                 api_name="predict").then(**end_outputing_args).then(**auto_name_chat_history_args)
     submitBtn.click(**get_usage_args)
 
-    # submitBtn.click(auto_name_chat_history, [current_model, user_question, chatbot, user_name], [historySelectList], show_progress=False)
+    submitBtn.click(auto_name_chat_history, [current_model, user_question, chatbot, user_name], [historySelectList], show_progress=False)
 
     index_files.upload(handle_file_upload, [current_model, index_files, chatbot, language_select_dropdown], [
                        index_files, chatbot, status_display])
-    # summarize_btn.click(handle_summarize_index, [
-    #                     current_model, index_files, chatbot, language_select_dropdown], [chatbot, status_display])
+    summarize_btn.click(handle_summarize_index, [
+                        current_model, index_files, chatbot, language_select_dropdown], [chatbot, status_display])
 
     emptyBtn.click(
         reset,

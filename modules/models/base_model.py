@@ -41,7 +41,7 @@ from ..config import retrieve_proxy
 
 from superduperdb import superduper
 
-db = superduper('mysql://root:1@localhost/power')
+db = superduper('mysql://root:1@10.88.203.77:3306/power')
 from superduperdb.backends.ibis.query import Table
 from superduperdb.backends.ibis.field_types import dtype
 from superduperdb import Schema
@@ -54,6 +54,11 @@ t = Table('company', schema=schema)
 
 db.add(t)
 
+sheet_d = {
+  'company': ['project','capacity','avg_daily_wind_speed','daily_elec_gen','daily_limit_elec','report_daily_limit_elec_ratio','monthly_elec_gen','monthly_limit_elec','monthly_use_hours','report_monthly_limit_elec_ratio','monthly_plan_elec','monthly_plan_com_rate','annual_elec_gen','annual_limit_elec','annual_use_hours','report_annual_limit_elec_ratio','annual_plan_elec','annual_plan_com_rate'],
+  'wind': ['project','capacity','daily_elec_gen','daily_limit_elec','report_daily_limit_elec_ratio','daily_comprehensive_elec_rate','monthly_elec_gen','monthly_limit_elec','monthly_use_hours','report_monthly_limit_elec_ratio','monthly_plan_elec','monthly_plan_com_rate','annual_elec_gen','annual_limit_elec','annual_use_hours','report_annual_limit_elec_ratio','annual_plan_elec','annual_plan_com_rate','daily_grid_elec','daily_purchase_elec','monthly_grid_elec','monthly_purchase_elec','annual_grid_elec','annual_purchase_elec'],
+  'project': ['project','capacity','avg_daily_wind_speed','daily_elec_gen','daily_limit_elec','report_daily_limit_elec_ratio','monthly_elec_gen','monthly_limit_elec','monthly_use_hours','report_monthly_limit_elec_ratio','monthly_plan_elec','monthly_plan_com_rate','annual_elec_gen','annual_limit_elec','annual_use_hours','report_annual_limit_elec_ratio','annual_plan_elec','annual_plan_com_rate','daily_grid_elec','daily_purchase_elec','monthly_grid_elec','monthly_purchase_elec','annual_grid_elec','annual_purchase_elec']
+}
 
 class CallbackToIterator:
     def __init__(self):
@@ -300,7 +305,8 @@ class BaseLLMModel:
         count = 0
         for response in response_iter:
             count += 1
-        return response, sum(self.all_token_counts) + count
+        # return response, sum(self.all_token_counts) + count
+        return "test.........", 1000
 
     def billing_info(self):
         """get billing infomation, inplement if needed"""
@@ -356,7 +362,8 @@ class BaseLLMModel:
         else:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
-        ai_reply, total_token_count = self.get_answer_at_once()
+        # ai_reply, total_token_count = self.get_answer_at_once()
+        ai_reply, total_token_count = 'test999999', 100
         self.history.append(construct_assistant(ai_reply))
         if fake_input is not None:
             self.history[-2] = construct_user(fake_input)
@@ -370,44 +377,62 @@ class BaseLLMModel:
 
     def handle_file_upload(self, files, chatbot, language):
         """if the model accepts multi modal input, implement this function"""
+        print(f">>>>>>>>>>>>{files=},{files.name}")
+        import openpyxl
+        workbook = openpyxl.load_workbook(files.name)
+        worksheet = workbook['公司口径电量']
+        count = 0
+        for row in worksheet.iter_rows(min_row=2, values_only=True):  # 该方法会按行生成所有行的数据，min_row参数用于跳过表头
+            print(row) # 打印每一行
+            count += 1
+            if count > 3:
+              break
         status = gr.Markdown.update()
-        if files:
-            index = construct_index(self.api_key, file_src=files)
-            status = i18n("索引构建完成")
+        # if files:
+        #   # df = pd.read_excel(files)
+        #   excel = openpyxl.load_workbook(files)
+        #   print(f"{excel=}")
+            # index = construct_index(self.api_key, file_src=files)
+            # status = i18n("索引构建完成")
         return gr.Files.update(), chatbot, status
 
     def summarize_index(self, files, chatbot, language):
+        import pandas as pd
+        import io
+        print(f"{files=}, summarize!!!!")
         status = gr.Markdown.update()
-        if files:
-            index = construct_index(self.api_key, file_src=files)
-            status = i18n("总结完成")
-            logging.info(i18n("生成内容总结中……"))
-            os.environ["OPENAI_API_KEY"] = self.api_key
-            from langchain.chains.summarize import load_summarize_chain
-            from langchain.prompts import PromptTemplate
-            from langchain.chat_models import ChatOpenAI
-            from langchain.callbacks import StdOutCallbackHandler
+        df = pd.read_excel(files[0].name)
+        print(f"{df=}")
+        # if files:
+        #     index = construct_index(self.api_key, file_src=files)
+        #     status = i18n("总结完成")
+        #     logging.info(i18n("生成内容总结中……"))
+        #     os.environ["OPENAI_API_KEY"] = self.api_key
+        #     from langchain.chains.summarize import load_summarize_chain
+        #     from langchain.prompts import PromptTemplate
+        #     from langchain.chat_models import ChatOpenAI
+        #     from langchain.callbacks import StdOutCallbackHandler
 
-            prompt_template = (
-                "Write a concise summary of the following:\n\n{text}\n\nCONCISE SUMMARY IN "
-                + language
-                + ":"
-            )
-            PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
-            llm = ChatOpenAI()
-            chain = load_summarize_chain(
-                llm,
-                chain_type="map_reduce",
-                return_intermediate_steps=True,
-                map_prompt=PROMPT,
-                combine_prompt=PROMPT,
-            )
-            summary = chain(
-                {"input_documents": list(index.docstore.__dict__["_dict"].values())},
-                return_only_outputs=True,
-            )["output_text"]
-            print(i18n("总结") + f": {summary}")
-            chatbot.append([i18n("上传了") + str(len(files)) + "个文件", summary])
+        #     prompt_template = (
+        #         "Write a concise summary of the following:\n\n{text}\n\nCONCISE SUMMARY IN "
+        #         + language
+        #         + ":"
+        #     )
+        #     PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
+        #     llm = ChatOpenAI()
+        #     chain = load_summarize_chain(
+        #         llm,
+        #         chain_type="map_reduce",
+        #         return_intermediate_steps=True,
+        #         map_prompt=PROMPT,
+        #         combine_prompt=PROMPT,
+        #     )
+        #     summary = chain(
+        #         {"input_documents": list(index.docstore.__dict__["_dict"].values())},
+        #         return_only_outputs=True,
+        #     )["output_text"]
+        #     print(i18n("总结") + f": {summary}")
+        #     chatbot.append([i18n("上传了") + str(len(files)) + "个文件", summary])
         return chatbot, status
 
     def prepare_inputs(
@@ -580,27 +605,27 @@ class BaseLLMModel:
         )
         yield chatbot + [(fake_inputs, "")], status_text
 
-        if (
-            self.need_api_key
-            and self.api_key is None
-            and not shared.state.multi_api_key
-        ):
-            status_text = STANDARD_ERROR_MSG + NO_APIKEY_MSG
-            logging.info(status_text)
-            chatbot.append((fake_inputs, ""))
-            if len(self.history) == 0:
-                self.history.append(construct_user(fake_inputs))
-                self.history.append("")
-                self.all_token_counts.append(0)
-            else:
-                self.history[-2] = construct_user(fake_inputs)
-            yield chatbot + [(fake_inputs, "")], status_text
-            return
-        elif len(fake_inputs.strip()) == 0:
-            status_text = STANDARD_ERROR_MSG + NO_INPUT_MSG
-            logging.info(status_text)
-            yield chatbot + [(fake_inputs, "")], status_text
-            return
+        # if (
+        #     self.need_api_key
+        #     and self.api_key is None
+        #     and not shared.state.multi_api_key
+        # ):
+        #     status_text = STANDARD_ERROR_MSG + NO_APIKEY_MSG
+        #     logging.info(status_text)
+        #     chatbot.append((fake_inputs, ""))
+        #     if len(self.history) == 0:
+        #         self.history.append(construct_user(fake_inputs))
+        #         self.history.append("")
+        #         self.all_token_counts.append(0)
+        #     else:
+        #         self.history[-2] = construct_user(fake_inputs)
+        #     yield chatbot + [(fake_inputs, "")], status_text
+        #     return
+        # elif len(fake_inputs.strip()) == 0:
+        #     status_text = STANDARD_ERROR_MSG + NO_INPUT_MSG
+        #     logging.info(status_text)
+        #     yield chatbot + [(fake_inputs, "")], status_text
+        #     return
 
         if self.single_turn:
             self.history = []
@@ -611,25 +636,14 @@ class BaseLLMModel:
             self.history.append(construct_user(inputs))
 
         try:
-            if stream:
-                logging.debug("使用流式传输")
-                iter = self.stream_next_chatbot(
-                    inputs,
-                    chatbot,
-                    fake_input=fake_inputs,
-                    display_append=display_append,
-                )
-                for chatbot, status_text in iter:
-                    yield chatbot, status_text
-            else:
-                logging.debug("不使用流式传输")
-                chatbot, status_text = self.next_chatbot_at_once(
-                    inputs,
-                    chatbot,
-                    fake_input=fake_inputs,
-                    display_append=display_append,
-                )
-                yield chatbot, status_text
+            logging.debug("不使用流式传输")
+            chatbot, status_text = self.next_chatbot_at_once(
+                inputs,
+                chatbot,
+                fake_input=fake_inputs,
+                display_append=display_append,
+            )
+            yield chatbot, status_text
         except Exception as e:
             traceback.print_exc()
             status_text = STANDARD_ERROR_MSG + beautify_err_msg(str(e))
