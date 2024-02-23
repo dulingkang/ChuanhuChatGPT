@@ -34,3 +34,5 @@ google-search-results
 anthropic==0.3.11
 Pillow>=10.1.0
 protobuf==3.20.3
+superduperdb==0.1.0
+pymysql

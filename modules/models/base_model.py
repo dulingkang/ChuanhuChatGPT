@@ -41,24 +41,13 @@ from ..config import retrieve_proxy
 
 from superduperdb import superduper
 
-db = superduper('mysql://root:1@10.88.203.77:3306/power')
+db = superduper('mysql://power:1@10.88.203.77:3306/power')
 from superduperdb.backends.ibis.query import Table
 from superduperdb.backends.ibis.field_types import dtype
 from superduperdb import Schema
 
-schema = Schema('company-schema', fields={'name': dtype('str'), 'capacity': dtype('float'), 'ad_wind_speed': dtype('float')})
-
 db = superduper()
 
-t = Table('company', schema=schema)
-
-db.add(t)
-
-sheet_d = {
-  'company': ['project','capacity','avg_daily_wind_speed','daily_elec_gen','daily_limit_elec','report_daily_limit_elec_ratio','monthly_elec_gen','monthly_limit_elec','monthly_use_hours','report_monthly_limit_elec_ratio','monthly_plan_elec','monthly_plan_com_rate','annual_elec_gen','annual_limit_elec','annual_use_hours','report_annual_limit_elec_ratio','annual_plan_elec','annual_plan_com_rate'],
-  'wind': ['project','capacity','daily_elec_gen','daily_limit_elec','report_daily_limit_elec_ratio','daily_comprehensive_elec_rate','monthly_elec_gen','monthly_limit_elec','monthly_use_hours','report_monthly_limit_elec_ratio','monthly_plan_elec','monthly_plan_com_rate','annual_elec_gen','annual_limit_elec','annual_use_hours','report_annual_limit_elec_ratio','annual_plan_elec','annual_plan_com_rate','daily_grid_elec','daily_purchase_elec','monthly_grid_elec','monthly_purchase_elec','annual_grid_elec','annual_purchase_elec'],
-  'project': ['project','capacity','avg_daily_wind_speed','daily_elec_gen','daily_limit_elec','report_daily_limit_elec_ratio','monthly_elec_gen','monthly_limit_elec','monthly_use_hours','report_monthly_limit_elec_ratio','monthly_plan_elec','monthly_plan_com_rate','annual_elec_gen','annual_limit_elec','annual_use_hours','report_annual_limit_elec_ratio','annual_plan_elec','annual_plan_com_rate','daily_grid_elec','daily_purchase_elec','monthly_grid_elec','monthly_purchase_elec','annual_grid_elec','annual_purchase_elec']
-}
 
 class CallbackToIterator:
     def __init__(self):
@@ -380,13 +369,21 @@ class BaseLLMModel:
         print(f">>>>>>>>>>>>{files=},{files.name}")
         import openpyxl
         workbook = openpyxl.load_workbook(files.name)
-        worksheet = workbook['公司口径电量']
-        count = 0
-        for row in worksheet.iter_rows(min_row=2, values_only=True):  # 该方法会按行生成所有行的数据，min_row参数用于跳过表头
-            print(row) # 打印每一行
-            count += 1
-            if count > 3:
-              break
+        name = '公司口径电量'
+        df = pd.read_excel(files.name, sheet_name=name)
+        col = df.columns
+        fields = {k: dtype('str') for k in df.columns}
+        fields['ID'] = dtype('int')
+        fields['组'] = dtype('int')
+        _, t = db.add(Table(name, primary_id='ID', schema=Schema(f'{name}-schema', fields=fields)))
+        db.execute(t.insert(df))
+        # worksheet = workbook[name]
+        # count = 0
+        # for row in worksheet.iter_rows(min_row=2, values_only=True):  # 该方法会按行生成所有行的数据，min_row参数用于跳过表头
+        #     print(row) # 打印每一行
+        #     count += 1
+        #     if count > 3:
+        #       break
         status = gr.Markdown.update()
         # if files:
         #   # df = pd.read_excel(files)
