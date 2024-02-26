@@ -11,6 +11,7 @@ import urllib3
 import traceback
 import pathlib
 import shutil
+import pandas as pd
 
 from tqdm import tqdm
 import colorama
@@ -41,10 +42,86 @@ from ..config import retrieve_proxy, db_str
 
 from superduperdb import superduper
 
+os.environ['OPENAI_BASE_URL'] = 'https://api.chatanywhere.tech/v1'
+
 db = superduper(db_str)
 from superduperdb.backends.ibis.query import Table
 from superduperdb.backends.ibis.field_types import dtype
 from superduperdb import Schema
+
+from superduperdb.ext.openai import OpenAIChatCompletion
+from superduperdb.backends.ibis.query import RawSQL
+from IPython.display import Markdown
+
+
+def chat_with_your_database(table_name, query, limit=5):
+    # Define the search parameters
+    search_term = f'Write me a SQL query for the table named {table_name}. The query is: {query}'
+
+    # Define the prompt for the OpenAIChatCompletion model
+    prompt = (
+        'Act as a database administrator, and expert in SQL. You will be helping me write complex SQL queries. I will explain you my needs, you will generate SQL queries against my database. The database is a Snowflake database, please take it into consideration when generating SQL.'
+        f' I will provide you with a description of the structure of my tables. You must remember them and use them for generating SQL queries.\n'
+        'Here are the tables in CSV format: {context}\n\n'
+        f'Generate only the SQL query. Always write "regex_pattern" in every "WHERE" query. Integrate a "LIMIT {limit}" clause into the query. Exclude any text other than the SQL query itself. Do not include markdown "```" or "```sql" at the start or end.'
+        'Here\'s the CSV file:\n'
+    )
+
+    # Add the OpenAIChatCompletion instance to the database
+    db.add(OpenAIChatCompletion(model='gpt-3.5-turbo', prompt=prompt))
+
+    # Use the OpenAIChatCompletion model to predict the next query based on the provided context
+    output, context = db.predict(
+        model_name='gpt-3.5-turbo',
+        input=search_term,
+        context_select=db.execute(RawSQL(f'DESCRIBE {table_name}')).as_pandas().to_csv()
+        # context_select=db.execute(RawSQL(f'SELECT * FROM {table_name} LIMIT 10')).as_pandas().to_csv() # Use in case of some other SQL databases like Postgres where `DESCRIBE` is not supported.
+    )
+
+    try:
+        # Attempt to execute the predicted SQL query and retrieve the result as a pandas DataFrame
+        # print(output.content)
+        query_result = db.execute(RawSQL(output.content)).as_pandas()
+
+        if query_result.empty:
+            query_result = "No result found. Please edit your query based on the database. Be specific. Like keep everything in lowercase. Use regex etc. Run the same thing multiple times. Always."
+    except:
+        # If an exception occurs, provide a message to guide the user on adjusting their query
+        # query_result = "Please edit your query based on the database so that we can find you a suitable result. Please check your table schema if you encounter issues. Run again, if necessary."
+        query_result = None
+    return query_result.to_json(orient='records')
+
+def explain_the_result(query_result):
+    # Define the search parameters
+    try:
+        search_term = f'Find business insights from it {query_result.to_csv()}'
+    except:
+        return "No result found. Run again. Please edit your query. Be specific. And always run again. LLM will catch the error and will show you the perfect result in multiple attempts."
+
+    # Define the prompt for the OpenAIChatCompletion model
+    prompt = (
+        f'Assume the role of a database analyst. Your objective is to provide accurate business insights based on the provided CSV content. Avoid reproducing the same CSV file or rewriting the SQL query. Conclude your response with a summary.\n'
+        'Context: {context}'
+        'Here\'s the CSV file for you to analyze:\n'
+    )
+
+    # Add the OpenAIChatCompletion instance to the database
+    db.add(OpenAIChatCompletion(model='gpt-3.5-turbo', prompt=prompt))
+
+    # Use the OpenAIChatCompletion model to predict insights based on the provided context
+    output, context = db.predict(
+        model_name='gpt-3.5-turbo',
+        input=search_term,
+    )
+
+    try:
+        # Attempt to format the predicted output as Markdown
+        query_result = Markdown(output.content)
+    except:
+        # If an exception occurs, provide a message to guide the user on adjusting their input
+        query_result = "Please edit your input based on the dataset so that we can find you a suitable output. Please check your data if you encounter issues."
+
+    return query_result
 
 
 class CallbackToIterator:
@@ -349,7 +426,12 @@ class BaseLLMModel:
         else:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
-        ai_reply, total_token_count = self.get_answer_at_once()
+        ai_reply = chat_with_your_database('公司口径电量', inputs)
+        total_token_count = 1000
+        if ai_reply is None:
+            ai_reply, total_token_count = self.get_answer_at_once()
+
+        # ai_reply = explain_the_result(ai_reply)
         # ai_reply, total_token_count = 'test999999', 100
         self.history.append(construct_assistant(ai_reply))
         if fake_input is not None:
@@ -392,7 +474,6 @@ class BaseLLMModel:
         return gr.Files.update(), chatbot, status
 
     def summarize_index(self, files, chatbot, language):
-        import pandas as pd
         import io
         print(f"{files=}, summarize!!!!")
         status = gr.Markdown.update()
