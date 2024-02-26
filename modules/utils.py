@@ -23,7 +23,6 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 import pandas as pd
 import colorama
-from datetime import datetime
 from modules.presets import *
 from . import shared
 from modules.config import retrieve_proxy, hide_history_when_not_logged_in
@@ -90,7 +89,8 @@ def rename_chat_history(current_model, *args):
 
 
 def auto_name_chat_history(current_model, *args):
-    return current_model.auto_name_chat_history(*args)
+    if current_model is not None:
+        return current_model.auto_name_chat_history(*args)
 
 
 def export_markdown(current_model, *args):
@@ -1414,9 +1414,9 @@ def reboot_chuanhu():
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-def handle_sheet(sheet):
-  dt = None
-  for row in worksheet.iter_rows(min_row=2, values_only=True):
-    if isinstance(row[0], datetime):
-      dt = row[0]
+# def handle_sheet(sheet):
+#   dt = None
+#   for row in worksheet.iter_rows(min_row=2, values_only=True):
+#     if isinstance(row[0], datetime):
+#       dt = row[0]
     

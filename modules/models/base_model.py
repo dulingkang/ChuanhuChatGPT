@@ -351,8 +351,8 @@ class BaseLLMModel:
         else:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
-        # ai_reply, total_token_count = self.get_answer_at_once()
-        ai_reply, total_token_count = 'test999999', 100
+        ai_reply, total_token_count = self.get_answer_at_once()
+        # ai_reply, total_token_count = 'test999999', 100
         self.history.append(construct_assistant(ai_reply))
         if fake_input is not None:
             self.history[-2] = construct_user(fake_input)
