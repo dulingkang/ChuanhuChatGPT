@@ -37,16 +37,14 @@ from ..presets import *
 from ..index_func import *
 from ..utils import *
 from .. import shared
-from ..config import retrieve_proxy
+from ..config import retrieve_proxy, db_str
 
 from superduperdb import superduper
 
-db = superduper('mysql://power:1@10.88.203.77:3306/power')
+db = superduper(db_str)
 from superduperdb.backends.ibis.query import Table
 from superduperdb.backends.ibis.field_types import dtype
 from superduperdb import Schema
-
-db = superduper()
 
 
 class CallbackToIterator:
