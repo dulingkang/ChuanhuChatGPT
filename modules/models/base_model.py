@@ -51,7 +51,6 @@ from superduperdb import Schema
 
 from superduperdb.ext.openai import OpenAIChatCompletion
 from superduperdb.backends.ibis.query import RawSQL
-from IPython.display import Markdown
 
 
 def chat_with_your_database(table_name, query, limit=5):
@@ -77,51 +76,22 @@ def chat_with_your_database(table_name, query, limit=5):
         context_select=db.execute(RawSQL(f'DESCRIBE {table_name}')).as_pandas().to_csv()
         # context_select=db.execute(RawSQL(f'SELECT * FROM {table_name} LIMIT 10')).as_pandas().to_csv() # Use in case of some other SQL databases like Postgres where `DESCRIBE` is not supported.
     )
-
+    print(f"{output.content=}")
     try:
         # Attempt to execute the predicted SQL query and retrieve the result as a pandas DataFrame
         # print(output.content)
-        query_result = db.execute(RawSQL(output.content)).as_pandas()
+        query_result = db.execute(RawSQL(output.content))
+        query_result = query_result.as_pandas()
+        print(f"{query_result=}, {type(query_result)=}")
 
         if query_result.empty:
-            query_result = "No result found. Please edit your query based on the database. Be specific. Like keep everything in lowercase. Use regex etc. Run the same thing multiple times. Always."
-    except:
+            query_result = None
+    except Exception as e:
+        print(e)
         # If an exception occurs, provide a message to guide the user on adjusting their query
         # query_result = "Please edit your query based on the database so that we can find you a suitable result. Please check your table schema if you encounter issues. Run again, if necessary."
         query_result = None
-    return query_result.to_json(orient='records')
-
-def explain_the_result(query_result):
-    # Define the search parameters
-    try:
-        search_term = f'Find business insights from it {query_result.to_csv()}'
-    except:
-        return "No result found. Run again. Please edit your query. Be specific. And always run again. LLM will catch the error and will show you the perfect result in multiple attempts."
-
-    # Define the prompt for the OpenAIChatCompletion model
-    prompt = (
-        f'Assume the role of a database analyst. Your objective is to provide accurate business insights based on the provided CSV content. Avoid reproducing the same CSV file or rewriting the SQL query. Conclude your response with a summary.\n'
-        'Context: {context}'
-        'Here\'s the CSV file for you to analyze:\n'
-    )
-
-    # Add the OpenAIChatCompletion instance to the database
-    db.add(OpenAIChatCompletion(model='gpt-3.5-turbo', prompt=prompt))
-
-    # Use the OpenAIChatCompletion model to predict insights based on the provided context
-    output, context = db.predict(
-        model_name='gpt-3.5-turbo',
-        input=search_term,
-    )
-
-    try:
-        # Attempt to format the predicted output as Markdown
-        query_result = Markdown(output.content)
-    except:
-        # If an exception occurs, provide a message to guide the user on adjusting their input
-        query_result = "Please edit your input based on the dataset so that we can find you a suitable output. Please check your data if you encounter issues."
-
-    return query_result
+    return query_result if query_result is not None else ''
 
 
 class CallbackToIterator:
@@ -369,8 +339,7 @@ class BaseLLMModel:
         count = 0
         for response in response_iter:
             count += 1
-        # return response, sum(self.all_token_counts) + count
-        return "test.........", 1000
+        return response, sum(self.all_token_counts) + count
 
     def billing_info(self):
         """get billing infomation, inplement if needed"""
@@ -426,13 +395,10 @@ class BaseLLMModel:
         else:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
-        ai_reply = chat_with_your_database('公司口径电量', inputs)
+        ai_reply = chat_with_your_database('company_power', inputs)
         total_token_count = 1000
-        if ai_reply is None:
-            ai_reply, total_token_count = self.get_answer_at_once()
-
-        # ai_reply = explain_the_result(ai_reply)
-        # ai_reply, total_token_count = 'test999999', 100
+        # ai_reply, total_token_count = self.get_once_answer(text=f"请用中文正确显示如下内容:\n{ai_reply.to_string}")
+        ai_reply = ai_reply.to_markdown() if isinstance(ai_reply, pd.DataFrame) else '完成'
         self.history.append(construct_assistant(ai_reply))
         if fake_input is not None:
             self.history[-2] = construct_user(fake_input)
@@ -453,9 +419,9 @@ class BaseLLMModel:
         df = pd.read_excel(files.name, sheet_name=name)
         col = df.columns
         fields = {k: dtype('str') for k in df.columns}
-        fields['ID'] = dtype('int')
+        fields['id'] = dtype('int')
         fields['组'] = dtype('int')
-        _, t = db.add(Table(name, primary_id='ID', schema=Schema(f'{name}-schema', fields=fields)))
+        _, t = db.add(Table("company_power", primary_id='id', schema=Schema(f'{name}-schema', fields=fields)))
         db.execute(t.insert(df))
         # worksheet = workbook[name]
         # count = 0
@@ -526,7 +492,7 @@ class BaseLLMModel:
             fake_inputs = real_inputs[0]["text"]
         else:
             fake_inputs = real_inputs
-        if files:
+        if 0 and files:
             from langchain.embeddings.huggingface import HuggingFaceEmbeddings
             from langchain.vectorstores.base import VectorStoreRetriever
 
