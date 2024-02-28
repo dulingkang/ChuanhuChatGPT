@@ -63,8 +63,7 @@ def chat_with_your_database(table_name, query, limit=5):
         f' I will provide you with a description of the structure of my tables. You must remember them and use them for generating SQL queries.\n'
         'Here are the tables in CSV format: {context}\n\n'
         f'Generate only the SQL query. Always write "regex_pattern" in every "WHERE" query. Integrate a "LIMIT {limit}" clause into the query. Exclude any text other than the SQL query itself. Do not include markdown "```" or "```sql" at the start or end.'
-        'Here\'s the CSV file:\n'
-    )
+        'Here\'s the CSV file:\n')
 
     # Add the OpenAIChatCompletion instance to the database
     db.add(OpenAIChatCompletion(model='gpt-3.5-turbo', prompt=prompt))
@@ -73,7 +72,8 @@ def chat_with_your_database(table_name, query, limit=5):
     output, context = db.predict(
         model_name='gpt-3.5-turbo',
         input=search_term,
-        context_select=db.execute(RawSQL(f'DESCRIBE {table_name}')).as_pandas().to_csv()
+        context_select=db.execute(
+            RawSQL(f'DESCRIBE {table_name}')).as_pandas().to_csv()
         # context_select=db.execute(RawSQL(f'SELECT * FROM {table_name} LIMIT 10')).as_pandas().to_csv() # Use in case of some other SQL databases like Postgres where `DESCRIBE` is not supported.
     )
     print(f"{output.content=}")
@@ -95,6 +95,7 @@ def chat_with_your_database(table_name, query, limit=5):
 
 
 class CallbackToIterator:
+
     def __init__(self):
         self.queue = deque()
         self.cond = Condition()
@@ -138,13 +139,15 @@ def get_action_description(text):
 
 
 class SDBCallbackHandler(BaseCallbackHandler):
+
     def __init__(self, callback) -> None:
         """Initialize callback handler."""
         self.callback = callback
 
-    def on_agent_action(
-        self, action: AgentAction, color: Optional[str] = None, **kwargs: Any
-    ) -> Any:
+    def on_agent_action(self,
+                        action: AgentAction,
+                        color: Optional[str] = None,
+                        **kwargs: Any) -> Any:
         self.callback(get_action_description(action.log))
 
     def on_tool_end(
@@ -167,9 +170,10 @@ class SDBCallbackHandler(BaseCallbackHandler):
         if llm_prefix is not None:
             logging.info(llm_prefix)
 
-    def on_agent_finish(
-        self, finish: AgentFinish, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def on_agent_finish(self,
+                        finish: AgentFinish,
+                        color: Optional[str] = None,
+                        **kwargs: Any) -> None:
         # self.callback(f"{finish.log}\n\n")
         logging.info(finish.log)
 
@@ -258,6 +262,7 @@ class ModelType(Enum):
 
 
 class BaseLLMModel:
+
     def __init__(
         self,
         model_name,
@@ -334,7 +339,8 @@ class BaseLLMModel:
         the answer (str)
         total token count (int)
         """
-        logging.warning("at once predict not implemented, using stream predict instead")
+        logging.warning(
+            "at once predict not implemented, using stream predict instead")
         response_iter = self.get_answer_stream_iter()
         count = 0
         for response in response_iter:
@@ -351,7 +357,12 @@ class BaseLLMModel:
         # logging.warning("token count not implemented, using default")
         return len(user_input)
 
-    def stream_next_chatbot(self, inputs, chatbot, fake_input=None, display_append=""):
+    def stream_next_chatbot(self,
+                            inputs,
+                            chatbot,
+                            fake_input=None,
+                            display_append=""):
+
         def get_return_value():
             return chatbot, status_text
 
@@ -368,9 +379,8 @@ class BaseLLMModel:
         stream_iter = self.get_answer_stream_iter()
 
         if display_append:
-            display_append = (
-                '\n\n<hr class="append-display no-in-raw" />' + display_append
-            )
+            display_append = ('\n\n<hr class="append-display no-in-raw" />' +
+                              display_append)
         partial_text = ""
         token_increment = 1
         for partial_text in stream_iter:
@@ -385,7 +395,11 @@ class BaseLLMModel:
                 break
         self.history.append(construct_assistant(partial_text))
 
-    def next_chatbot_at_once(self, inputs, chatbot, fake_input=None, display_append=""):
+    def next_chatbot_at_once(self,
+                             inputs,
+                             chatbot,
+                             fake_input=None,
+                             display_append=""):
         if fake_input:
             chatbot.append((fake_input, ""))
         else:
@@ -395,56 +409,97 @@ class BaseLLMModel:
         else:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
-        ai_reply = chat_with_your_database('company_power', inputs)
+        ai_reply = chat_with_your_database('company', inputs)
         total_token_count = 1000
         # ai_reply, total_token_count = self.get_once_answer(text=f"请用中文正确显示如下内容:\n{ai_reply.to_string}")
-        ai_reply = ai_reply.to_markdown() if isinstance(ai_reply, pd.DataFrame) else '完成'
+        ai_reply = ai_reply.to_markdown() if isinstance(
+            ai_reply, pd.DataFrame) else '完成'
         self.history.append(construct_assistant(ai_reply))
         if fake_input is not None:
             self.history[-2] = construct_user(fake_input)
         chatbot[-1] = (chatbot[-1][0], ai_reply + display_append)
         if fake_input is not None:
-            self.all_token_counts[-1] += count_token(construct_assistant(ai_reply))
+            self.all_token_counts[-1] += count_token(
+                construct_assistant(ai_reply))
         else:
-            self.all_token_counts[-1] = total_token_count - sum(self.all_token_counts)
+            self.all_token_counts[-1] = total_token_count - sum(
+                self.all_token_counts)
         status_text = self.token_message()
         return chatbot, status_text
 
     def handle_file_upload(self, files, chatbot, language):
         """if the model accepts multi modal input, implement this function"""
-        print(f">>>>>>>>>>>>{files=},{files.name}")
-        import openpyxl
-        workbook = openpyxl.load_workbook(files.name)
-        name = '公司口径电量'
-        df = pd.read_excel(files.name, sheet_name=name)
-        col = df.columns
-        fields = {k: dtype('str') for k in df.columns}
-        fields['id'] = dtype('int')
-        fields['组'] = dtype('int')
-        _, t = db.add(Table("company_power", primary_id='id', schema=Schema(f'{name}-schema', fields=fields)))
-        db.execute(t.insert(df))
-        # worksheet = workbook[name]
-        # count = 0
-        # for row in worksheet.iter_rows(min_row=2, values_only=True):  # 该方法会按行生成所有行的数据，min_row参数用于跳过表头
-        #     print(row) # 打印每一行
-        #     count += 1
-        #     if count > 3:
-        #       break
+
+        def _get_time(file_name, sheet_name):
+            df = pd.read_excel(file_name, sheet_name=sheet_name, skiprows=1)
+            return df.columns[0].strftime("%Y-%m-%d")
+
+        table_names = ['company', 'wind', 'project']
+        names = ['公司口径电量', '风场口径', '项目口径']
+        columns = [
+            [
+            'id', '项目名称', '容量', '日均风速', '日发电量', '日限电量', '上报日限电比例', '月发电量',
+            '月限电量', '月利用小时', '上报月度限电比例', '月计划电量', '月计划完成率', '年发电量', '年限电量',
+            '年利用小时', '上报年度限电比例', '年计划电量', '年计划完成率'],
+            [
+            'id', '项目名称', '容量', '日发电量', '日限电量', '上报日限电比例',
+            '日综合场用电率', '月发电量', '月限电量', '月利用小时', '上报月度限电比例', '月计划电量',
+            '月计划完成率', '年发电量', '年限电量', '年利用小时', '上报年度限电比例', '年计划电量',
+            '年计划完成率', '日上网电量', '日购网电量', '月上网电量', '月购网电量', '年上网电量', '年购网电量'],
+            [
+            'id', '项目名称', '容 量', '日均风速', '日发电量', '日限电量', '上报日限电比例',
+            '月发电量', '月限电量', '月利用小时', '上报月度限电比例', '月计划电量', '月计划完成率',
+            '年发电量', '年限电量', '年利用小时', '上报年度限电比例', '年计划电量', '年计划完成率',
+            '日上网电量', '日购网电量', '月上网电量', '月购网电量', '年上网电量', '年购网电量']
+        ]
+        time_value = _get_time(files.name, names[0])
+        for k, name in enumerate(names):
+            print(f"{k=}")
+            skiprows = 1 if k > 0 else 2
+            df = pd.read_excel(files.name,
+                               sheet_name=name,
+                               skiprows=skiprows,
+                               engine='openpyxl')
+            df.columns = columns[k]
+            group = 1
+            df['组'] = group
+            query_id = db.execute(RawSQL(f"select id from {table_names[k]} order by id desc limit 1"))
+            query_pd = query_id.as_pandas()
+            if query_pd.empty:
+                start_id = 0
+            else:
+                start_id = int(query_pd['id'].values[0])
+            last_id = start_id
+            print(f'{last_id=}')
+            for i in range(len(df)):
+                df.loc[i, '组'] = group
+                if pd.isnull(df.loc[i, '项目名称']):
+                    group += 1
+                else:
+                    last_id += 1
+                    df.loc[i, 'id'] = last_id
+            df = df.dropna(subset=['id'])
+            df['时间'] = time_value
+            fields = {k: dtype('str') for k in df.columns}
+            fields['id'] = dtype('int')
+            fields['组'] = dtype('int')
+            _, t = db.add(
+                Table(table_names[k],
+                      primary_id='id',
+                      schema=Schema(f'{table_names[k]}-schema', fields=fields)))
+            db.execute(t.insert(df))
         status = gr.Markdown.update()
         # if files:
         #   # df = pd.read_excel(files)
         #   excel = openpyxl.load_workbook(files)
         #   print(f"{excel=}")
-            # index = construct_index(self.api_key, file_src=files)
-            # status = i18n("索引构建完成")
+        # index = construct_index(self.api_key, file_src=files)
+        # status = i18n("索引构建完成")
         return gr.Files.update(), chatbot, status
 
     def summarize_index(self, files, chatbot, language):
         import io
-        print(f"{files=}, summarize!!!!")
         status = gr.Markdown.update()
-        df = pd.read_excel(files[0].name)
-        print(f"{df=}")
         # if files:
         #     index = construct_index(self.api_key, file_src=files)
         #     status = i18n("总结完成")
@@ -508,13 +563,14 @@ class BaseLLMModel:
             msg = "索引获取成功，生成回答中……"
             logging.info(msg)
             with retrieve_proxy():
-                retriever = VectorStoreRetriever(
-                    vectorstore=index, search_type="similarity", search_kwargs={"k": 6}
-                )
+                retriever = VectorStoreRetriever(vectorstore=index,
+                                                 search_type="similarity",
+                                                 search_kwargs={"k": 6})
                 # retriever = VectorStoreRetriever(vectorstore=index, search_type="similarity_score_threshold", search_kwargs={
                 #                                  "k": 6, "score_threshold": 0.2})
                 try:
-                    relevant_documents = retriever.get_relevant_documents(fake_inputs)
+                    relevant_documents = retriever.get_relevant_documents(
+                        fake_inputs)
                 except AssertionError:
                     return self.prepare_inputs(
                         fake_inputs,
@@ -524,27 +580,26 @@ class BaseLLMModel:
                         chatbot,
                         load_from_cache_if_possible=False,
                     )
-            reference_results = [
-                [d.page_content.strip("�"), os.path.basename(d.metadata["source"])]
-                for d in relevant_documents
-            ]
+            reference_results = [[
+                d.page_content.strip("�"),
+                os.path.basename(d.metadata["source"])
+            ] for d in relevant_documents]
             reference_results = add_source_numbers(reference_results)
             display_append = add_details(reference_results)
             display_append = "\n\n" + "".join(display_append)
             if type(real_inputs) == list:
                 real_inputs[0]["text"] = (
-                    replace_today(PROMPT_TEMPLATE)
-                    .replace("{query_str}", fake_inputs)
-                    .replace("{context_str}", "\n\n".join(reference_results))
-                    .replace("{reply_language}", reply_language)
-                )
+                    replace_today(PROMPT_TEMPLATE).replace(
+                        "{query_str}", fake_inputs).replace(
+                            "{context_str}",
+                            "\n\n".join(reference_results)).replace(
+                                "{reply_language}", reply_language))
             else:
-                real_inputs = (
-                    replace_today(PROMPT_TEMPLATE)
-                    .replace("{query_str}", real_inputs)
-                    .replace("{context_str}", "\n\n".join(reference_results))
-                    .replace("{reply_language}", reply_language)
-                )
+                real_inputs = (replace_today(PROMPT_TEMPLATE).replace(
+                    "{query_str}", real_inputs).replace(
+                        "{context_str}",
+                        "\n\n".join(reference_results)).replace(
+                            "{reply_language}", reply_language))
         elif use_websearch:
             search_results = []
             with retrieve_proxy() as proxy:
@@ -571,23 +626,22 @@ class BaseLLMModel:
                 )
             reference_results = add_source_numbers(reference_results)
             # display_append = "<ol>\n\n" + "".join(display_append) + "</ol>"
-            display_append = (
-                '<div class = "source-a">' + "".join(display_append) + "</div>"
-            )
+            display_append = ('<div class = "source-a">' +
+                              "".join(display_append) + "</div>")
             if type(real_inputs) == list:
                 real_inputs[0]["text"] = (
-                    replace_today(WEBSEARCH_PTOMPT_TEMPLATE)
-                    .replace("{query}", fake_inputs)
-                    .replace("{web_results}", "\n\n".join(reference_results))
-                    .replace("{reply_language}", reply_language)
-                )
+                    replace_today(WEBSEARCH_PTOMPT_TEMPLATE).replace(
+                        "{query}", fake_inputs).replace(
+                            "{web_results}",
+                            "\n\n".join(reference_results)).replace(
+                                "{reply_language}", reply_language))
             else:
                 real_inputs = (
-                    replace_today(WEBSEARCH_PTOMPT_TEMPLATE)
-                    .replace("{query}", fake_inputs)
-                    .replace("{web_results}", "\n\n".join(reference_results))
-                    .replace("{reply_language}", reply_language)
-                )
+                    replace_today(WEBSEARCH_PTOMPT_TEMPLATE).replace(
+                        "{query}", fake_inputs).replace(
+                            "{web_results}",
+                            "\n\n".join(reference_results)).replace(
+                                "{reply_language}", reply_language))
         else:
             display_append = ""
         return limited_context, fake_inputs, display_append, real_inputs, chatbot
@@ -604,26 +658,14 @@ class BaseLLMModel:
     ):  # repetition_penalty, top_k
         status_text = "开始生成回答……"
         if type(inputs) == list:
-            logging.info(
-                "用户"
-                + f"{self.user_name}"
-                + "的输入为："
-                + colorama.Fore.BLUE
-                + "("
-                + str(len(inputs) - 1)
-                + " images) "
-                + f"{inputs[0]['text']}"
-                + colorama.Style.RESET_ALL
-            )
+            logging.info("用户" + f"{self.user_name}" + "的输入为：" +
+                         colorama.Fore.BLUE + "(" + str(len(inputs) - 1) +
+                         " images) " + f"{inputs[0]['text']}" +
+                         colorama.Style.RESET_ALL)
         else:
-            logging.info(
-                "用户"
-                + f"{self.user_name}"
-                + "的输入为："
-                + colorama.Fore.BLUE
-                + f"{inputs}"
-                + colorama.Style.RESET_ALL
-            )
+            logging.info("用户" + f"{self.user_name}" + "的输入为：" +
+                         colorama.Fore.BLUE + f"{inputs}" +
+                         colorama.Style.RESET_ALL)
         if should_check_token_count:
             if type(inputs) == list:
                 yield chatbot + [(inputs[0]["text"], "")], status_text
@@ -691,13 +733,11 @@ class BaseLLMModel:
             status_text = STANDARD_ERROR_MSG + beautify_err_msg(str(e))
             yield chatbot, status_text
 
-        if len(self.history) > 1 and self.history[-1]["content"] != fake_inputs:
-            logging.info(
-                "回答为："
-                + colorama.Fore.BLUE
-                + f"{self.history[-1]['content']}"
-                + colorama.Style.RESET_ALL
-            )
+        if len(self.history
+               ) > 1 and self.history[-1]["content"] != fake_inputs:
+            logging.info("回答为：" + colorama.Fore.BLUE +
+                         f"{self.history[-1]['content']}" +
+                         colorama.Style.RESET_ALL)
 
         if limited_context:
             # self.history = self.history[-4:]
@@ -709,11 +749,9 @@ class BaseLLMModel:
 
         if sum(self.all_token_counts) > max_token and should_check_token_count:
             count = 0
-            while (
-                sum(self.all_token_counts)
-                > self.token_upper_limit * REDUCE_TOKEN_FACTOR
-                and sum(self.all_token_counts) > 0
-            ):
+            while (sum(self.all_token_counts) >
+                   self.token_upper_limit * REDUCE_TOKEN_FACTOR
+                   and sum(self.all_token_counts) > 0):
                 count += 1
                 del self.all_token_counts[0]
                 del self.history[:2]
@@ -923,13 +961,9 @@ class BaseLLMModel:
             token_lst = self.all_token_counts
         token_sum = 0
         for i in range(len(token_lst)):
-            token_sum += sum(token_lst[: i + 1])
-        return (
-            i18n("Token 计数: ")
-            + f"{sum(token_lst)}"
-            + i18n("，本次对话累计消耗了 ")
-            + f"{token_sum} tokens"
-        )
+            token_sum += sum(token_lst[:i + 1])
+        return (i18n("Token 计数: ") + f"{sum(token_lst)}" +
+                i18n("，本次对话累计消耗了 ") + f"{token_sum} tokens")
 
     def rename_chat_history(self, filename, chatbot):
         if filename == "":
@@ -941,9 +975,8 @@ class BaseLLMModel:
         repeat_file_index = 2
         full_path = os.path.join(HISTORY_DIR, self.user_name, filename)
         while os.path.exists(full_path):
-            full_path = os.path.join(
-                HISTORY_DIR, self.user_name, f"{repeat_file_index}_{filename}"
-            )
+            full_path = os.path.join(HISTORY_DIR, self.user_name,
+                                     f"{repeat_file_index}_{filename}")
             repeat_file_index += 1
         filename = os.path.basename(full_path)
 
@@ -951,9 +984,8 @@ class BaseLLMModel:
         save_file(filename, self, chatbot)
         return init_history_list(self.user_name)
 
-    def auto_name_chat_history(
-        self, name_chat_method, user_question, chatbot, single_turn_checkbox
-    ):
+    def auto_name_chat_history(self, name_chat_method, user_question, chatbot,
+                               single_turn_checkbox):
         if len(self.history) == 2 and not single_turn_checkbox:
             user_question = self.history[0]["content"]
             if type(user_question) == list:
@@ -989,14 +1021,15 @@ class BaseLLMModel:
                         os.path.basename(new_history_file_path),
                     ),
                 )
-                self.history_file_path = os.path.basename(new_history_file_path)
+                self.history_file_path = os.path.basename(
+                    new_history_file_path)
             else:
                 self.history_file_path = new_history_file_path
         try:
-            if self.history_file_path == os.path.basename(self.history_file_path):
-                history_file_path = os.path.join(
-                    HISTORY_DIR, self.user_name, self.history_file_path
-                )
+            if self.history_file_path == os.path.basename(
+                    self.history_file_path):
+                history_file_path = os.path.join(HISTORY_DIR, self.user_name,
+                                                 self.history_file_path)
             else:
                 history_file_path = self.history_file_path
             if not self.history_file_path.endswith(".json"):
@@ -1019,8 +1052,7 @@ class BaseLLMModel:
             if len(saved_json["chatbot"]) < len(saved_json["history"]) // 2:
                 logging.info("Trimming corrupted history...")
                 saved_json["history"] = saved_json["history"][
-                    -len(saved_json["chatbot"]) :
-                ]
+                    -len(saved_json["chatbot"]):]
                 logging.info(f"Trimmed history: {saved_json['history']}")
             logging.debug(f"{self.user_name} 加载对话历史完毕")
             self.history = saved_json["history"]
@@ -1028,21 +1060,19 @@ class BaseLLMModel:
             self.temperature = saved_json.get("temperature", self.temperature)
             self.top_p = saved_json.get("top_p", self.top_p)
             self.n_choices = saved_json.get("n_choices", self.n_choices)
-            self.stop_sequence = list(saved_json.get("stop_sequence", self.stop_sequence))
-            self.token_upper_limit = saved_json.get(
-                "token_upper_limit", self.token_upper_limit
-            )
+            self.stop_sequence = list(
+                saved_json.get("stop_sequence", self.stop_sequence))
+            self.token_upper_limit = saved_json.get("token_upper_limit",
+                                                    self.token_upper_limit)
             self.max_generation_token = saved_json.get(
-                "max_generation_token", self.max_generation_token
-            )
-            self.presence_penalty = saved_json.get(
-                "presence_penalty", self.presence_penalty
-            )
-            self.frequency_penalty = saved_json.get(
-                "frequency_penalty", self.frequency_penalty
-            )
+                "max_generation_token", self.max_generation_token)
+            self.presence_penalty = saved_json.get("presence_penalty",
+                                                   self.presence_penalty)
+            self.frequency_penalty = saved_json.get("frequency_penalty",
+                                                    self.frequency_penalty)
             self.logit_bias = saved_json.get("logit_bias", self.logit_bias)
-            self.user_identifier = saved_json.get("user_identifier", self.user_name)
+            self.user_identifier = saved_json.get("user_identifier",
+                                                  self.user_name)
             self.metadata = saved_json.get("metadata", self.metadata)
             self.chatbot = saved_json["chatbot"]
             return (
@@ -1090,7 +1120,8 @@ class BaseLLMModel:
         if not filename.endswith(".json"):
             filename += ".json"
         if filename == os.path.basename(filename):
-            history_file_path = os.path.join(HISTORY_DIR, self.user_name, filename)
+            history_file_path = os.path.join(HISTORY_DIR, self.user_name,
+                                             filename)
         else:
             history_file_path = filename
         md_history_file_path = history_file_path[:-5] + ".md"
@@ -1128,6 +1159,7 @@ class BaseLLMModel:
 
 
 class Base_Chat_Langchain_Client(BaseLLMModel):
+
     def __init__(self, model_name, user_name=""):
         super().__init__(model_name, user=user_name)
         self.need_api_key = False
@@ -1148,8 +1180,8 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
 
     def get_answer_at_once(self):
         assert isinstance(
-            self.model, BaseChatModel
-        ), "model is not instance of LangChain BaseChatModel"
+            self.model,
+            BaseChatModel), "model is not instance of LangChain BaseChatModel"
         history = self._get_langchain_style_history()
         response = self.model.generate(history)
         return response.content, sum(response.content)
@@ -1157,14 +1189,13 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
     def get_answer_stream_iter(self):
         it = CallbackToIterator()
         assert isinstance(
-            self.model, BaseChatModel
-        ), "model is not instance of LangChain BaseChatModel"
+            self.model,
+            BaseChatModel), "model is not instance of LangChain BaseChatModel"
         history = self._get_langchain_style_history()
 
         def thread_func():
-            self.model(
-                messages=history, callbacks=[SDBCallbackHandler(it.callback)]
-            )
+            self.model(messages=history,
+                       callbacks=[SDBCallbackHandler(it.callback)])
             it.finish()
 
         t = Thread(target=thread_func)
