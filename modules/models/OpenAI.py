@@ -58,6 +58,16 @@ class OpenAIClient(BaseLLMModel):
         total_token_count = response["usage"]["total_tokens"]
         return content, total_token_count
 
+    def get_once_answer(self, text):
+        if not self.api_key:
+            raise Exception(NO_APIKEY_MSG)
+        response = self._get_response(text=text)
+        response = json.loads(response.text)
+        content = response["choices"][0]["message"]["content"]
+        total_token_count = response["usage"]["total_tokens"]
+        return content, total_token_count
+
+
     def count_token(self, user_input):
         input_token_count = count_token(construct_user(user_input))
         if self.system_prompt is not None and len(self.all_token_counts) == 0:
@@ -110,10 +120,10 @@ class OpenAIClient(BaseLLMModel):
             return STANDARD_ERROR_MSG + ERROR_RETRIEVE_MSG
 
     @shared.state.switching_api_key  # 在不开启多账号模式的时候，这个装饰器不会起作用
-    def _get_response(self, stream=False):
+    def _get_response(self, stream=False, text=""):
         openai_api_key = self.api_key
         system_prompt = self.system_prompt
-        history = self.history
+        history = [text] if text else self.history
         logging.debug(colorama.Fore.YELLOW +
                       f"{history}" + colorama.Fore.RESET)
         headers = {
@@ -123,7 +133,7 @@ class OpenAIClient(BaseLLMModel):
 
         if system_prompt is not None:
             history = [construct_system(system_prompt), *history]
-
+        print(f"{self.model_name=}")
         payload = {
             "model": self.model_name,
             "messages": history,
@@ -152,7 +162,6 @@ class OpenAIClient(BaseLLMModel):
         # 如果有自定义的api-host，使用自定义host发送请求，否则使用默认设置发送请求
         if shared.state.chat_completion_url != CHAT_COMPLETION_URL:
             logging.debug(f"使用自定义API URL: {shared.state.chat_completion_url}")
-
         with retrieve_proxy():
             try:
                 response = requests.post(

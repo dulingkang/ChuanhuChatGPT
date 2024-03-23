@@ -1,18 +1,20 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
-import pathlib
 import shutil
-import sys
 import traceback
 from collections import deque
 from enum import Enum
 from itertools import islice
 from threading import Condition, Thread
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
+import pandas as pd
+import numpy as np
+import textwrap
+from PyPDF2 import PdfReader
+import time
 
 import aiohttp
 import colorama
@@ -27,13 +29,71 @@ from langchain.chat_models.base import BaseChatModel
 from langchain.input import print_text
 from langchain.schema import (AgentAction, AgentFinish, AIMessage, BaseMessage,
                               HumanMessage, LLMResult, SystemMessage)
-from tqdm import tqdm
 
 from .. import shared
 from ..config import retrieve_proxy
 from ..index_func import *
 from ..presets import *
 from ..utils import *
+
+from ..config import retrieve_proxy
+
+# from superduperdb import superduper
+
+os.environ['OPENAI_BASE_URL'] = 'https://api.chatanywhere.tech/v1'
+
+from .openai1 import OpenAIClient1
+
+# db = superduper(db_str)
+# from superduperdb.backends.ibis.query import Table
+# from superduperdb.backends.ibis.field_types import dtype
+# from superduperdb import Schema
+
+# from superduperdb.ext.openai import OpenAIChatCompletion
+# from superduperdb.backends.ibis.query import RawSQL
+
+
+# def chat_with_your_database(table_name, query, limit=5):
+#     # Define the search parameters
+#     search_term = f'Write me a SQL query for the table named {table_name}. The query is: {query}'
+
+#     # Define the prompt for the OpenAIChatCompletion model
+#     prompt = (
+#         'Act as a database administrator, and expert in SQL. You will be helping me write complex SQL queries. I will explain you my needs, you will generate SQL queries against my database. The database is a Snowflake database, please take it into consideration when generating SQL.'
+#         f' I will provide you with a description of the structure of my tables. You must remember them and use them for generating SQL queries.\n'
+#         'Here are the tables in CSV format: {context}\n\n'
+#         f'Generate only the SQL query. Always write "regex_pattern" in every "WHERE" query. Integrate a "LIMIT {limit}" clause into the query. Exclude any text other than the SQL query itself. Do not include markdown "```" or "```sql" at the start or end.'
+#         'Here\'s the CSV file:\n')
+
+#     # Add the OpenAIChatCompletion instance to the database
+#     db.add(OpenAIChatCompletion(model='gpt-3.5-turbo', prompt=prompt, identifier='gpt-3.5'))
+
+#     # Use the OpenAIChatCompletion model to predict the next query based on the provided context
+#     output, context = db.predict(
+#         model_name='gpt-3.5-turbo',
+#         input=search_term,
+#         context_select=db.execute(
+#             RawSQL(f'DESCRIBE {table_name}')).as_pandas().to_csv()
+#         # context_select=db.execute(RawSQL(f'SELECT * FROM {table_name} LIMIT 10')).as_pandas().to_csv() # Use in case of some other SQL databases like Postgres where `DESCRIBE` is not supported.
+#     )
+#     content = output.content
+#     content = content.replace('"', '`')
+#     logging.info(f"{content=}")
+#     try:
+#         # Attempt to execute the predicted SQL query and retrieve the result as a pandas DataFrame
+#         # print(output.content)
+#         query_result = db.execute(RawSQL(content))
+#         query_result = query_result.as_pandas()
+#         logging.info(f"{query_result=}")
+
+#         if query_result.empty:
+#             query_result = None
+#     except Exception as e:
+#         print(e)
+#         # If an exception occurs, provide a message to guide the user on adjusting their query
+#         # query_result = "Please edit your query based on the database so that we can find you a suitable result. Please check your table schema if you encounter issues. Run again, if necessary."
+#         query_result = None
+#     return query_result if query_result is not None else ''
 
 
 class CallbackToIterator:
@@ -79,7 +139,7 @@ def get_action_description(text):
         return ""
 
 
-class ChuanhuCallbackHandler(BaseCallbackHandler):
+class SdbCallbackHandler(BaseCallbackHandler):
     def __init__(self, callback) -> None:
         """Initialize callback handler."""
         self.callback = callback
@@ -139,7 +199,7 @@ class ModelType(Enum):
     MOSS = 5
     YuanAI = 6
     Minimax = 7
-    ChuanhuAgent = 8
+    SdbAgent = 8
     GooglePaLM = 9
     LangchainChat = 10
     Midjourney = 11
@@ -181,8 +241,8 @@ class ModelType(Enum):
             model_type = ModelType.YuanAI
         elif "minimax" in model_name_lower:
             model_type = ModelType.Minimax
-        elif "川虎助理" in model_name_lower:
-            model_type = ModelType.ChuanhuAgent
+        elif "SDB助理" in model_name_lower:
+            model_type = ModelType.SdbAgent
         elif "palm" in model_name_lower:
             model_type = ModelType.GooglePaLM
         elif "gemini" in model_name_lower:
@@ -292,6 +352,7 @@ class BaseLLMModel:
         self.frequency_penalty = frequency_penalty
         self.logit_bias = logit_bias
         self.user_identifier = user
+        self.table_name = ''
 
         self.metadata = {}
 
@@ -363,6 +424,18 @@ class BaseLLMModel:
                 self.recover()
                 break
         self.history.append(construct_assistant(partial_text))
+  
+    def to_markdown(self, df):
+        for column in df.columns:
+          # if np.issubdtype(df[column].dtype, np.number):
+            df[column] = df[column].apply(lambda x: '<br>'.join(textwrap.wrap(str(x), width=6)))
+        header = f"|{'|'.join(map(str, df.columns))}|"
+        line = "|" + "---|" * len(df.columns)
+        rows = ["|" + "|".join(map(str, row)) + "|" for row in df.values]
+
+        table = "\n".join([header, line] + rows)
+        logging.info(table)
+        return table
 
     def next_chatbot_at_once(self, inputs, chatbot, fake_input=None, display_append=""):
         if fake_input:
@@ -374,7 +447,14 @@ class BaseLLMModel:
         else:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
+        # if self.table_name == '无' or not self.table_name:
         ai_reply, total_token_count = self.get_answer_at_once()
+        # else:
+        #     ai_reply = chat_with_your_database(self.table_name, inputs)
+        #     total_token_count = 1000
+        #     ai_reply = self.to_markdown(ai_reply) if isinstance(
+        #     ai_reply, pd.DataFrame) else '无输出'
+
         self.history.append(construct_assistant(ai_reply))
         if fake_input is not None:
             self.history[-2] = construct_user(fake_input)
@@ -385,6 +465,39 @@ class BaseLLMModel:
             self.all_token_counts[-1] = total_token_count - sum(self.all_token_counts)
         status_text = self.token_message()
         return chatbot, status_text
+
+    def handle_sql_change(self, table_name):
+        d = {'公司口径': 'company', '风场口径': 'wind', '项目口径': 'project'}
+        self.table_name = d.get(table_name, '无')
+        print(f"{self.table_name=}")
+
+    def handle_sql_upload(self, files):
+        prompt = """你精通简历分析，请把简历翻译成简体中文，并总结以下信息：姓名-name,电话-phone,邮件-mail,教育经历-edu,工作经验-exp,技能标签-tag,个人技能总结-summary,
+        其中edu样式为: {"master": {"university": "", "major": "", "duration": "2020.07-2021.08"}, "bachelor": {}},
+        exp样式为: [{"company": "", "position": "", "duration": "2021.09-2022.10", "responsibility": ""}],技能标签输出前15个，手机号只保留数字。以简体中文json格式返回。以下是简历:
+        """
+        ai = OpenAIClient1(api_key=os.environ["OPENAI_API_KEY"], prompt=prompt) 
+
+        status = gr.Markdown.update()
+        for k, file in enumerate(files):
+            base_text = '\n请把以上简历的内容翻译成简体中文。'
+            text = ''
+            with open(file.name, 'rb') as file:
+                reader = PdfReader(file)
+
+                num_pages = len(reader.pages)
+
+                for page_num in range(num_pages):
+                    page = reader.pages[page_num]
+                    text += page.extract_text()
+            resp = ai.predict(text=text + base_text, clear=True)
+            d = json.loads(resp)
+            print(f"{d=}")
+            status = i18n(f"完成第{k+1}个简历")
+            time.sleep(0.5)
+
+        return status
+
 
     def handle_file_upload(self, files, chatbot, language):
         """if the model accepts multi modal input, implement this function"""
@@ -401,7 +514,7 @@ class BaseLLMModel:
 
     def summarize_index(self, files, chatbot, language):
         status = gr.Markdown.update()
-        if files:
+        if 0:
             index = construct_index(self.api_key, file_src=files)
             status = i18n("总结完成")
             logging.info(i18n("生成内容总结中……"))
@@ -448,7 +561,7 @@ class BaseLLMModel:
             fake_inputs = real_inputs[0]["text"]
         else:
             fake_inputs = real_inputs
-        if files:
+        if 0:
             from langchain.embeddings.huggingface import HuggingFaceEmbeddings
             from langchain.vectorstores.base import VectorStoreRetriever
 
@@ -1133,7 +1246,7 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
 
         def thread_func():
             self.model(
-                messages=history, callbacks=[ChuanhuCallbackHandler(it.callback)]
+                messages=history, callbacks=[SdbCallbackHandler(it.callback)]
             )
             it.finish()
 

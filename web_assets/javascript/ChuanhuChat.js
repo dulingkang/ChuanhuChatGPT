@@ -1,5 +1,5 @@
 
-// ChuanhuChat core javascript
+// SdbChat core javascript
 
 const MAX_HISTORY_LENGTH = 32;
 
@@ -25,16 +25,16 @@ var updateToast = null;
 var sendBtn = null;
 var cancelBtn = null;
 var sliders = null;
-var updateChuanhuBtn = null;
-var rebootChuanhuBtn = null;
+var updateSdbBtn = null;
+var rebootSdbBtn = null;
 var statusDisplay = null;
 
 var historySelector = null;
-var chuanhuPopup = null;
+var sdbPopup = null;
 var settingBox = null;
 var trainingBox = null;
 var popupWrapper = null;
-var chuanhuHeader = null;
+var sdbHeader = null;
 var menu = null;
 var toolbox = null;
 // var trainBody = null;
@@ -47,7 +47,7 @@ let windowWidth = window.innerWidth; // 初始窗口宽度
 function addInit() {
     var needInit = {chatbotIndicator, uploaderIndicator};
 
-    chatbotIndicator = gradioApp().querySelector('#chuanhu-chatbot > div.wrap');
+    chatbotIndicator = gradioApp().querySelector('#sdb-chatbot > div.wrap');
     uploaderIndicator = gradioApp().querySelector('#upload-index-file > div[data-testid="block-label"]');
     chatListIndicator = gradioApp().querySelector('#history-select-dropdown > div.wrap');
 
@@ -75,23 +75,23 @@ function initialize() {
     userInfoDiv = gradioApp().getElementById("user-info");
     appTitleDiv = gradioApp().getElementById("app-title");
     chatbotArea = gradioApp().querySelector('#chatbot-area');
-    chatbot = gradioApp().querySelector('#chuanhu-chatbot');
-    chatbotWrap = gradioApp().querySelector('#chuanhu-chatbot > .wrapper > .wrap');
+    chatbot = gradioApp().querySelector('#sdb-chatbot');
+    chatbotWrap = gradioApp().querySelector('#sdb-chatbot > .wrapper > .wrap');
     apSwitch = gradioApp().querySelector('.apSwitch input[type="checkbox"]');
     updateToast = gradioApp().querySelector("#toast-update");
     sendBtn = gradioApp().getElementById("submit-btn");
     cancelBtn = gradioApp().getElementById("cancel-btn");
     sliders = gradioApp().querySelectorAll('input[type="range"]');
-    updateChuanhuBtn = gradioApp().getElementById("update-chuanhu-btn");
-    rebootChuanhuBtn = gradioApp().getElementById("reboot-chuanhu-btn");
+    updateSdbBtn = gradioApp().getElementById("update-sdb-btn");
+    rebootSdbBtn = gradioApp().getElementById("reboot-sdb-btn");
     statusDisplay = gradioApp().querySelector('#status-display');
 
     historySelector = gradioApp().querySelector('#history-select-dropdown');
-    chuanhuPopup = gradioApp().querySelector('#chuanhu-popup');
-    settingBox = gradioApp().querySelector('#chuanhu-setting');
-    trainingBox = gradioApp().querySelector('#chuanhu-training');
+    sdbPopup = gradioApp().querySelector('#sdb-popup');
+    settingBox = gradioApp().querySelector('#sdb-setting');
+    trainingBox = gradioApp().querySelector('#sdb-training');
     popupWrapper = gradioApp().querySelector('#popup-wrapper');
-    chuanhuHeader = gradioApp().querySelector('#chuanhu-header');
+    sdbHeader = gradioApp().querySelector('#sdb-header');
     menu = gradioApp().querySelector('#menu-area');
     toolbox = gradioApp().querySelector('#toolbox-area');
     // trainBody = gradioApp().querySelector('#train-body');
@@ -302,8 +302,8 @@ function setPopupBoxPosition() {
     popupWrapper.style.width = `${screenWidth}px`;
     // const popupBoxWidth = 680;
     // const popupBoxHeight = 400;
-    // chuanhuPopup.style.left = `${(screenWidth - popupBoxWidth) / 2}px`;
-    // chuanhuPopup.style.top = `${(screenHeight - popupBoxHeight) / 2}px`;
+    // sdbPopup.style.left = `${(screenWidth - popupBoxWidth) / 2}px`;
+    // sdbPopup.style.top = `${(screenHeight - popupBoxHeight) / 2}px`;
 }
 
 function updateVH() {
@@ -361,7 +361,7 @@ function chatbotContentChanged(attempt = 1, force = false) {
             updateCheckboxes();
             bindFancyBox();
 
-            gradioApp().querySelectorAll('#chuanhu-chatbot .message-wrap .message.bot').forEach(addChuanhuButton);
+            gradioApp().querySelectorAll('#sdb-chatbot .message-wrap .message.bot').forEach(addSdbButton);
 
             if (chatbotIndicator.classList.contains('hide')) { // generation finished
                 setLatestMessage();
@@ -370,7 +370,7 @@ function chatbotContentChanged(attempt = 1, force = false) {
 
             if (!chatbotIndicator.classList.contains('translucent')) { // message deleted
                 var checkLatestAdded = setInterval(() => {
-                    var latestMessageNow = gradioApp().querySelector('#chuanhu-chatbot > .wrapper > .wrap > .message-wrap .message.bot.latest');
+                    var latestMessageNow = gradioApp().querySelector('#sdb-chatbot > .wrapper > .wrap > .message-wrap .message.bot.latest');
                     if (latestMessageNow && latestMessageNow.querySelector('.message-btn-row')) {
                         clearInterval(checkLatestAdded);
                     } else {
@@ -453,7 +453,7 @@ function makeML(str) {
     l = l.substring(l.indexOf("/*") + 3, l.lastIndexOf("*/"))
     return l
 }
-let ChuanhuInfo = function () {
+let SdbInfo = function () {
     /*
    ________                      __             ________          __
   / ____/ /_  __  ______ _____  / /_  __  __   / ____/ /_  ____ _/ /_
@@ -461,13 +461,13 @@ let ChuanhuInfo = function () {
 / /___/ / / / /_/ / /_/ / / / / / / / /_/ /  / /___/ / / / /_/ / /_
 \____/_/ /_/\__,_/\__,_/_/ /_/_/ /_/\__,_/   \____/_/ /_/\__,_/\__/
 
-   川虎Chat (Chuanhu Chat) - GUI for ChatGPT API and many LLMs
+   SDBChat (Resume Chat) - GUI for ChatGPT API and many LLMs
  */
 }
 let description = `
-© 2023 Chuanhu, MZhao, Keldos
-GitHub repository: [https://github.com/GaiZhenbiao/ChuanhuChatGPT]\n
+© 2023 Sdb, MZhao, Keldos
+GitHub repository: [https://github.com/GaiZhenbiao/SdbChatGPT]\n
 Enjoy our project!\n
 `
-console.log(`%c${makeML(ChuanhuInfo)}`,styleTitle1);
+console.log(`%c${makeML(SdbInfo)}`,styleTitle1);
 console.log(`%c${description}`, styleDesc1);

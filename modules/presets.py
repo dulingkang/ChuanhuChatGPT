@@ -16,12 +16,12 @@ GEMMA_TOKENIZER = None
 # ChatGPT 设置
 INITIAL_SYSTEM_PROMPT = "You are a helpful assistant."
 API_HOST = "api.openai.com"
-OPENAI_API_BASE = "https://api.openai.com/v1"
-CHAT_COMPLETION_URL = "https://api.openai.com/v1/chat/completions"
-IMAGES_COMPLETION_URL = "https://api.openai.com/v1/images/generations"
-COMPLETION_URL = "https://api.openai.com/v1/completions"
-BALANCE_API_URL="https://api.openai.com/dashboard/billing/credit_grants"
-USAGE_API_URL="https://api.openai.com/dashboard/billing/usage"
+OPENAI_API_BASE = "https://api.chatanywhere.tech"
+CHAT_COMPLETION_URL = f"{OPENAI_API_BASE}/v1/chat/completions"
+IMAGES_COMPLETION_URL = f"{OPENAI_API_BASE}/v1/images/generations"
+COMPLETION_URL = f"{OPENAI_API_BASE}/v1/completions"
+BALANCE_API_URL=f"{OPENAI_API_BASE}/dashboard/billing/credit_grants"
+USAGE_API_URL=f"{OPENAI_API_BASE}/dashboard/billing/usage"
 HISTORY_DIR = Path("history")
 HISTORY_DIR = "history"
 TEMPLATES_DIR = "templates"
@@ -47,9 +47,9 @@ CONCURRENT_COUNT = 100 # 允许同时使用的用户数量
 SIM_K = 5
 INDEX_QUERY_TEMPRATURE = 1.0
 
-CHUANHU_TITLE = i18n("川虎Chat 🚀")
+CHUANHU_TITLE = i18n("SDBChat 🚀")
 
-CHUANHU_DESCRIPTION = i18n("由Bilibili [土川虎虎虎](https://space.bilibili.com/29125536)、[明昭MZhao](https://space.bilibili.com/24807452) 和 [Keldos](https://github.com/Keldos-Li) 开发<br />访问川虎Chat的 [GitHub项目](https://github.com/GaiZhenbiao/ChuanhuChatGPT) 下载最新版脚本")
+CHUANHU_DESCRIPTION = i18n("由Bilibili [土SDB虎虎](https://space.bilibili.com/29125536)、[明昭MZhao](https://space.bilibili.com/24807452) 和 [Keldos](https://github.com/Keldos-Li) 开发<br />访问SDBChat的 [GitHub项目](https://github.com/GaiZhenbiao/SdbChatGPT) 下载最新版脚本")
 
 
 ONLINE_MODELS = [
@@ -63,8 +63,8 @@ ONLINE_MODELS = [
     "GPT4 32K",
     "GPT4 Turbo",
     "GPT4 Vision",
-    "川虎助理",
-    "川虎助理 Pro",
+    "SDB助理",
+    "SDB助理 Pro",
     "DALL-E 3",
     "Gemini Pro",
     "Gemini Pro Vision",
@@ -205,7 +205,7 @@ if os.environ.get('HIDE_LOCAL_MODELS', 'false') == 'true':
 else:
     MODELS = ONLINE_MODELS + LOCAL_MODELS
 
-DEFAULT_MODEL = 0
+DEFAULT_MODEL = 5
 
 os.makedirs("models", exist_ok=True)
 os.makedirs("lora", exist_ok=True)

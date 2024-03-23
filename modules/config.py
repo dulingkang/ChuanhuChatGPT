@@ -28,10 +28,11 @@ __all__ = [
     "check_update",
     "latex_delimiters_set",
     "hide_history_when_not_logged_in",
-    "default_chuanhu_assistant_model",
+    "default_sdb_assistant_model",
     "show_api_billing",
     "chat_name_method_index",
     "HIDE_MY_KEY",
+    "db_str",
 ]
 
 # 添加一个统一的config文件，避免文件过多造成的疑惑（优先级最低）
@@ -55,6 +56,7 @@ check_update = config.get("check_update", True)
 show_api_billing = config.get("show_api_billing", False)
 show_api_billing = bool(os.environ.get("SHOW_API_BILLING", show_api_billing))
 chat_name_method_index = config.get("chat_name_method_index", 2)
+db_str = os.environ.get('db_str', config.get("db_str", ""))
 
 if os.path.exists("api_key.txt"):
     logging.info("检测到api_key.txt文件，正在进行迁移...")
@@ -181,8 +183,8 @@ if api_host is not None:
     # os.environ["OPENAI_API_BASE"] = f"{api_host}/v1"
     logging.info(f"OpenAI API Base set to: {os.environ['OPENAI_API_BASE']}")
 
-default_chuanhu_assistant_model = config.get(
-    "default_chuanhu_assistant_model", "gpt-3.5-turbo")
+default_sdb_assistant_model = config.get(
+    "default_sdb_assistant_model", "gpt-3.5-turbo")
 for x in ["GOOGLE_CSE_ID", "GOOGLE_API_KEY", "WOLFRAM_ALPHA_APPID", "SERPAPI_API_KEY"]:
     if config.get(x, None) is not None:
         os.environ[x] = config[x]

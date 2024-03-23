@@ -25,8 +25,8 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 gr.Chatbot._postprocess_chat_messages = postprocess_chat_messages
 gr.Chatbot.postprocess = postprocess
 
-# with open("web_assets/css/ChuanhuChat.css", "r", encoding="utf-8") as f:
-#     ChuanhuChatCSS = f.read()
+# with open("web_assets/css/SdbChat.css", "r", encoding="utf-8") as f:
+#     SdbChatCSS = f.read()
 
 
 def create_new_model():
@@ -45,7 +45,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
     topic = gr.State(i18n("未命名对话历史记录"))
 
-    with gr.Row(elem_id="chuanhu-header"):
+    with gr.Row(elem_id="sdb-header"):
         gr.HTML(get_html("header_title.html").format(
             app_title=CHUANHU_TITLE), elem_id="app-title")
         status_display = gr.Markdown(get_geoip, elem_id="status-display")
@@ -63,13 +63,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
             reboot_btn=i18n("立即重启"),
         ), visible=check_update)
 
-    with gr.Row(equal_height=True, elem_id="chuanhu-body"):
+    with gr.Row(equal_height=True, elem_id="sdb-body"):
 
         with gr.Column(elem_id="menu-area"):
-            with gr.Column(elem_id="chuanhu-history"):
+            with gr.Column(elem_id="sdb-history"):
                 with gr.Box():
-                    with gr.Row(elem_id="chuanhu-history-header"):
-                        with gr.Row(elem_id="chuanhu-history-search-row"):
+                    with gr.Row(elem_id="sdb-history-header", visible=False):
+                        with gr.Row(elem_id="sdb-history-search-row"):
                             with gr.Column(min_width=150, scale=2):
                                 historySearchTextbox = gr.Textbox(show_label=False, container=False, placeholder=i18n(
                                     "搜索（支持正则）..."), lines=1, elem_id="history-search-tb")
@@ -79,7 +79,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 historyRefreshBtn = gr.Button("", elem_id="gr-history-refresh-btn")
 
 
-                    with gr.Row(elem_id="chuanhu-history-body"):
+                    with gr.Row(elem_id="sdb-history-body"):
                         with gr.Column(scale=6, elem_id="history-select-wrap"):
                             historySelectList = gr.Radio(
                                 label=i18n("从列表中加载对话"),
@@ -115,18 +115,22 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             exportMarkdownBtn = gr.Button(
                                 i18n("📝 导出为 Markdown"), elem_id="gr-markdown-export-btn")
 
-            with gr.Column(elem_id="chuanhu-menu-footer"):
-                with gr.Row(elem_id="chuanhu-func-nav"):
+            with gr.Column(elem_id="sdb-menu-footer", visible=False):
+                with gr.Row(elem_id="sdb-func-nav"):
                     gr.HTML(get_html("func_nav.html"))
                 # gr.HTML(get_html("footer.html").format(versions=versions_html()), elem_id="footer")
-                # gr.Markdown(CHUANHU_DESCRIPTION, elem_id="chuanhu-author")
+                # gr.Markdown(CHUANHU_DESCRIPTION, elem_id="sdb-author")
 
-        with gr.Column(elem_id="chuanhu-area", scale=5):
+        with gr.Column(elem_id="sdb-area", scale=5):
             with gr.Column(elem_id="chatbot-area"):
                 with gr.Row(elem_id="chatbot-header"):
                     model_select_dropdown = gr.Dropdown(
                         label=i18n("选择模型"), choices=MODELS, multiselect=False, value=MODELS[DEFAULT_MODEL], interactive=True,
-                        show_label=False, container=False, elem_id="model-select-dropdown"
+                        show_label=False, container=False, elem_id="model-select-dropdown",visible=False
+                    )
+                    sql_select_dropdown = gr.Dropdown(
+                        label=i18n("选择数据库表"), choices=['无', '公司口径', '风场口径', '项目口径'], multiselect=False, value='公司口径', interactive=True,
+                        show_label=False, container=False, elem_id="sql-select-dropdown"
                     )
                     lora_select_dropdown = gr.Dropdown(
                         label=i18n("选择模型"), choices=[], multiselect=False, interactive=True, visible=False,
@@ -138,8 +142,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     ), elem_id="chatbot-header-btn-bar")
                 with gr.Row():
                     chatbot = gr.Chatbot(
-                        label="Chuanhu Chat",
-                        elem_id="chuanhu-chatbot",
+                        label="Resume Chat",
+                        elem_id="sdb-chatbot",
                         latex_delimiters=latex_delimiters_set,
                         sanitize_html=False,
                         # height=700,
@@ -150,13 +154,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                 with gr.Row(elem_id="chatbot-footer"):
                     with gr.Box(elem_id="chatbot-input-box"):
                         with gr.Row(elem_id="chatbot-input-row"):
-                            gr.HTML(get_html("chatbot_more.html").format(
-                                single_turn_label=i18n("单轮对话"),
-                                websearch_label=i18n("在线搜索"),
-                                upload_file_label=i18n("上传文件"),
-                                uploaded_files_label=i18n("知识库文件"),
-                                uploaded_files_tip=i18n("在工具箱中管理知识库文件")
-                            ))
+                            # gr.HTML(get_html("chatbot_more.html").format(
+                            #     single_turn_label=i18n("单轮对话"),
+                            #     websearch_label=i18n("在线搜索"),
+                            #     upload_file_label=i18n("上传文件"),
+                            #     uploaded_files_label=i18n("知识库文件"),
+                            #     uploaded_files_tip=i18n("在工具箱中管理知识库文件")
+                            # ))
                             with gr.Row(elem_id="chatbot-input-tb-row"):
                                 with gr.Column(min_width=225, scale=12):
                                     user_input = gr.Textbox(
@@ -196,14 +200,14 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
         with gr.Column(elem_id="toolbox-area", scale=1):
             # For CSS setting, there is an extra box. Don't remove it.
-            with gr.Box(elem_id="chuanhu-toolbox"):
+            with gr.Box(elem_id="sdb-toolbox"):
                 with gr.Row():
                     gr.Markdown("## "+i18n("工具箱"))
                     gr.HTML(get_html("close_btn.html").format(
                         obj="toolbox"), elem_classes="close-btn")
-                with gr.Tabs(elem_id="chuanhu-toolbox-tabs"):
+                with gr.Tabs(elem_id="sdb-toolbox-tabs"):
                     with gr.Tab(label=i18n("对话")):
-                        with gr.Accordion(label=i18n("模型"), open=not HIDE_MY_KEY, visible=not HIDE_MY_KEY):
+                        with gr.Accordion(label=i18n("模型"), open=not HIDE_MY_KEY, visible=False):
                             keyTxt = gr.Textbox(
                                 show_label=True,
                                 placeholder=f"Your API-key...",
@@ -220,7 +224,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 usageTxt = gr.Markdown(i18n(
                                     "**发送消息** 或 **提交key** 以显示额度"), elem_id="usage-display", elem_classes="insert-block", visible=show_api_billing)
                         gr.Markdown("---", elem_classes="hr-line", visible=not HIDE_MY_KEY)
-                        with gr.Accordion(label="Prompt", open=True):
+                        with gr.Accordion(label="Prompt", open=True, visible=False):
                             systemPromptTxt = gr.Textbox(
                                 show_label=True,
                                 placeholder=i18n("在这里输入System Prompt..."),
@@ -229,8 +233,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 lines=8
                             )
                             retain_system_prompt_checkbox = gr.Checkbox(
-                                label=i18n("新建对话保留Prompt"), value=False, visible=True, elem_classes="switch-checkbox")
-                            with gr.Accordion(label=i18n("加载Prompt模板"), open=False):
+                                label=i18n("新建对话保留Prompt"), value=False, visible=False, elem_classes="switch-checkbox")
+                            with gr.Accordion(label=i18n("加载Prompt模板"), open=False, visible=False):
                                 with gr.Column():
                                     with gr.Row():
                                         with gr.Column(scale=6):
@@ -255,22 +259,23 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                                 multiselect=False,
                                                 container=False,
                                             )
-                        gr.Markdown("---", elem_classes="hr-line")
-                        with gr.Accordion(label=i18n("知识库"), open=True, elem_id="gr-kb-accordion"):
+                        # gr.Markdown("---", elem_classes="hr-line")
+                        with gr.Accordion(label=i18n("上传简历"), open=True, elem_id="gr-kb-accordion"):
                             use_websearch_checkbox = gr.Checkbox(label=i18n(
                                 "使用在线搜索"), value=False, elem_classes="switch-checkbox", elem_id="gr-websearch-cb", visible=False)
                             index_files = gr.Files(label=i18n(
-                                "上传"), type="file", file_types=[".pdf", ".docx", ".pptx", ".epub", ".xlsx", ".txt", "text", "image"], elem_id="upload-index-file")
+                                "上传"), type="file", file_types=[".pdf", ".docx", ".pptx", ".epub", ".xlsx", ".txt", "text", "image"], elem_id="upload-index-file", visible=False)
+                            resume_files = gr.Files(label=i18n("上传"), type="file", file_types=[".pdf"], elem_id="upload-resume-file")
                             two_column = gr.Checkbox(label=i18n(
-                                "双栏pdf"), value=advance_docs["pdf"].get("two_column", False))
-                            summarize_btn = gr.Button(i18n("总结"))
+                                "双栏pdf"), value=advance_docs["pdf"].get("two_column", False), visible=False)
+                            summarize_btn = gr.Button(i18n("总结"), visible=False)
                             # TODO: 公式ocr
                             # formula_ocr = gr.Checkbox(label=i18n("识别公式"), value=advance_docs["pdf"].get("formula_ocr", False))
 
-                    with gr.Tab(label=i18n("参数")):
-                        gr.Markdown(i18n("# ⚠️ 务必谨慎更改 ⚠️"),
-                                    elem_id="advanced-warning")
-                        with gr.Accordion(i18n("参数"), open=True):
+                    with gr.Tab(label=i18n("参数"), visible=False):
+                        # gr.Markdown(i18n("# ⚠️ 务必谨慎更改 ⚠️"),
+                        #             elem_id="advanced-warning")
+                        with gr.Accordion(i18n("参数"), open=True, visible=False):
                             temperature_slider = gr.Slider(
                                 minimum=-0,
                                 maximum=2.0,
@@ -348,20 +353,20 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 value=user_name.value,
                                 lines=1,
                             )
-                    with gr.Tab(label=i18n("拓展")):
-                        gr.Markdown(
-                            "Will be here soon...\n(We hope)\n\nAnd we hope you can help us to make more extensions!")
+                    # with gr.Tab(label=i18n("拓展")):
+                    #     gr.Markdown(
+                    #         "Will be here soon...\n(We hope)\n\nAnd we hope you can help us to make more extensions!")
 
                     # changeAPIURLBtn = gr.Button(i18n("🔄 切换API地址"))
 
     with gr.Row(elem_id="popup-wrapper"):
-        with gr.Box(elem_id="chuanhu-popup"):
-            with gr.Box(elem_id="chuanhu-setting"):
+        with gr.Box(elem_id="sdb-popup"):
+            with gr.Box(elem_id="sdb-setting"):
                 with gr.Row():
                     gr.Markdown("## "+i18n("设置"))
                     gr.HTML(get_html("close_btn.html").format(
                         obj="box"), elem_classes="close-btn")
-                with gr.Tabs(elem_id="chuanhu-setting-tabs"):
+                with gr.Tabs(elem_id="sdb-setting-tabs"):
                     # with gr.Tab(label=i18n("模型")):
 
                         # model_select_dropdown = gr.Dropdown(
@@ -375,7 +380,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
                     with gr.Tab(label=i18n("高级")):
                         gr.HTML(get_html("appearance_switcher.html").format(
-                            label=i18n("切换亮暗色主题")), elem_classes="insert-block", visible=False)
+                            label=i18n("切换亮暗色主题")), elem_classes="insert-block")
                         use_streaming_checkbox = gr.Checkbox(
                             label=i18n("实时传输回答"), value=True, visible=ENABLE_STREAMING_OPTION, elem_classes="switch-checkbox"
                         )
@@ -429,21 +434,21 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
                     with gr.Tab(label=i18n("关于"), elem_id="about-tab"):
                         gr.Markdown(
-                            '<img alt="Chuanhu Chat logo" src="file=web_assets/icon/any-icon-512.png" style="max-width: 144px;">')
-                        gr.Markdown("# "+i18n("川虎Chat"))
+                            '<img alt="Resume Chat logo" src="file=web_assets/icon/any-icon-512.png" style="max-width: 144px;">')
+                        gr.Markdown("# "+i18n("SDBChat"))
                         gr.HTML(get_html("footer.html").format(
                             versions=versions_html()), elem_id="footer")
                         gr.Markdown(CHUANHU_DESCRIPTION, elem_id="description")
 
-            with gr.Box(elem_id="chuanhu-training"):
+            with gr.Box(elem_id="sdb-training"):
                 with gr.Row():
                     gr.Markdown("## "+i18n("训练"))
                     gr.HTML(get_html("close_btn.html").format(
                         obj="box"), elem_classes="close-btn")
-                with gr.Tabs(elem_id="chuanhu-training-tabs"):
+                with gr.Tabs(elem_id="sdb-training-tabs"):
                     with gr.Tab(label="OpenAI "+i18n("微调")):
                         openai_train_status = gr.Markdown(label=i18n("训练状态"), value=i18n(
-                            "查看[使用介绍](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#微调-gpt-35)"))
+                            "查看[使用介绍](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/使用教程#微调-gpt-35)"))
 
                         with gr.Tab(label=i18n("准备数据集")):
                             dataset_preview_json = gr.JSON(
@@ -481,7 +486,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     updatingMsg_i18n=i18n("正在尝试更新..."),
                     updateSuccess_i18n=i18n("更新成功，请重启本程序"),
                     updateFailure_i18n=i18n(
-                        "更新失败，请尝试[手动更新](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#手动更新)"),
+                        "更新失败，请尝试[手动更新](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/使用教程#手动更新)"),
                     regenerate_i18n=i18n("重新生成"),
                     deleteRound_i18n=i18n("删除这轮问答"),
                     renameChat_i18n=i18n("重命名该对话"),
@@ -490,10 +495,10 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     dropUploadMsg_i18n=i18n("释放文件以上传"),
                 ))
             with gr.Box(elem_id="fake-gradio-components", visible=False):
-                updateChuanhuBtn = gr.Button(
-                    visible=False, elem_classes="invisible-btn", elem_id="update-chuanhu-btn")
-                rebootChuanhuBtn = gr.Button(
-                    visible=False, elem_classes="invisible-btn", elem_id="reboot-chuanhu-btn")
+                updateSdbBtn = gr.Button(
+                    visible=False, elem_classes="invisible-btn", elem_id="update-sdb-btn")
+                rebootSdbBtn = gr.Button(
+                    visible=False, elem_classes="invisible-btn", elem_id="reboot-sdb-btn")
                 changeSingleSessionBtn = gr.Button(
                     visible=False, elem_classes="invisible-btn", elem_id="change-single-session-btn")
                 changeOnlineSearchBtn = gr.Button(
@@ -594,6 +599,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
     index_files.upload(handle_file_upload, [current_model, index_files, chatbot, language_select_dropdown], [
                        index_files, chatbot, status_display])
+    resume_files.upload(handle_sql_upload, [current_model, resume_files], status_display)
     summarize_btn.click(handle_summarize_index, [
                         current_model, index_files, chatbot, language_select_dropdown], [chatbot, status_display])
 
@@ -663,7 +669,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     #     toggle_file_type, [model_select_dropdown], [index_files], show_progress=False)
     lora_select_dropdown.change(get_model, [model_select_dropdown, lora_select_dropdown, user_api_key, temperature_slider,
                                 top_p_slider, systemPromptTxt, user_name, current_model], [current_model, status_display, chatbot], show_progress=True)
-
+    sql_select_dropdown.change(handle_sql_change, [current_model, sql_select_dropdown])
     # Template
     systemPromptTxt.change(set_system_prompt, [
                            current_model, systemPromptTxt], None)
@@ -776,18 +782,18 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     # checkUpdateBtn.click(fn=None, _js='manualCheckUpdate')
 
     # Invisible elements
-    updateChuanhuBtn.click(
-        update_chuanhu,
+    updateSdbBtn.click(
+        update_sdb,
         [],
         [status_display],
         show_progress=True,
     )
-    rebootChuanhuBtn.click(
-        reboot_chuanhu,
+    rebootSdbBtn.click(
+        reboot_sdb,
         [],
         [],
         show_progress=True,
-        _js='rebootingChuanhu'
+        _js='rebootingSdb'
     )
     changeSingleSessionBtn.click(
         fn=lambda value: gr.Checkbox.update(value=value),
@@ -814,7 +820,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
             _js='self.location="/logout"'
         )
 # 默认开启本地服务器，默认可以直接从IP访问，默认不创建公开分享链接
-demo.title = i18n("川虎Chat 🚀")
+demo.title = i18n("SDBChat 🚀")
 
 if __name__ == "__main__":
     reload_javascript()
