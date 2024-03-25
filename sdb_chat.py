@@ -130,7 +130,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     )
                     sql_select_dropdown = gr.Dropdown(
                         label=i18n("选择数据库表"), choices=['无', '公司口径', '风场口径', '项目口径'], multiselect=False, value='公司口径', interactive=True,
-                        show_label=False, container=False, elem_id="sql-select-dropdown"
+                        show_label=False, container=False, elem_id="sql-select-dropdown",visible=False
                     )
                     lora_select_dropdown = gr.Dropdown(
                         label=i18n("选择模型"), choices=[], multiselect=False, interactive=True, visible=False,

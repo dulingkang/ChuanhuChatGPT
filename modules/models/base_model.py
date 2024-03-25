@@ -36,13 +36,12 @@ from ..index_func import *
 from ..presets import *
 from ..utils import *
 
-from ..config import retrieve_proxy
-
 # from superduperdb import superduper
 
 os.environ['OPENAI_BASE_URL'] = 'https://api.chatanywhere.tech/v1'
 
 from .openai1 import OpenAIClient1
+from ..sqlstore import store
 
 # db = superduper(db_str)
 # from superduperdb.backends.ibis.query import Table
@@ -480,7 +479,7 @@ class BaseLLMModel:
 
         status = gr.Markdown.update()
         for k, file in enumerate(files):
-            base_text = '\n请把以上简历的内容翻译成简体中文。'
+            base_text = '\n请把以上简历的内容翻译成简体中文,如果姓名中有中文,请只提取中文。'
             text = ''
             with open(file.name, 'rb') as file:
                 reader = PdfReader(file)
@@ -492,7 +491,21 @@ class BaseLLMModel:
                     text += page.extract_text()
             resp = ai.predict(text=text + base_text, clear=True)
             d = json.loads(resp)
-            print(f"{d=}")
+            logging.info(f"{d=}")
+            name = d['name']
+            phone = d['phone']
+            phone = phone.split('/')[0]
+            mail = d.get('mail', d.get('email')).split('/')[0]
+            edu_json = json.dumps(d['edu'], ensure_ascii=False)
+            exp_json = json.dumps(d['exp'], ensure_ascii=False)
+            tag = ','.join(d['tag'])
+            summary = d['summary']
+
+            sql = """INSERT INTO detail (name, phone, mail, edu, exp, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+            try:
+                store.execute(sql, name, phone, mail, edu_json, exp_json, tag, summary)
+            except Exception as e:
+                print(f"第{k+1}个简历出错：{e}")
             status = i18n(f"完成第{k+1}个简历")
             time.sleep(0.5)
 

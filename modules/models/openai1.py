@@ -3,7 +3,7 @@ import requests
 import traceback
 import tiktoken
 
-from setting import init_prompt, no_api_msg, openai_completion_url
+from ..setting import init_prompt, no_api_msg, openai_completion_url
 
 def construct_text(role, text):
     return {"role": role, "content": text}
