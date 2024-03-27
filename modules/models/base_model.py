@@ -501,7 +501,7 @@ class BaseLLMModel:
             tag = ','.join(d['tag'])
             summary = d['summary']
 
-            sql = """INSERT INTO detail (name, phone, mail, edu, exp, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+            sql = """INSERT INTO resume_detail (name, phone, mail, edu, exp, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
             try:
                 store.execute(sql, name, phone, mail, edu_json, exp_json, tag, summary)
             except Exception as e:

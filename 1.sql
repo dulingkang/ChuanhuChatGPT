@@ -1,6 +1,6 @@
-CREATE DATABASE resume;
-use resume;
-CREATE TABLE `detail` (
+-- CREATE DATABASE resume;
+-- use resume;
+CREATE TABLE `resume_detail` (
   `id` bigint not null AUTO_INCREMENT,
   `name` varchar(25) not null,
   `phone` varchar(30) not null default '',
