@@ -471,15 +471,16 @@ class BaseLLMModel:
         print(f"{self.table_name=}")
 
     def handle_sql_upload(self, files):
-        prompt = """你精通简历分析，请把简历翻译成简体中文，并总结以下信息：姓名-name,电话-phone,邮件-mail,教育经历-edu,工作经验-exp,技能标签-tag,个人技能总结-summary,
-        其中edu样式为: {"master": {"university": "", "major": "", "duration": "2020.07-2021.08"}, "bachelor": {}},
-        exp样式为: [{"company": "", "position": "", "duration": "2021.09-2022.10", "responsibility": ""}],技能标签输出前15个，手机号只保留数字。以简体中文json格式返回。以下是简历:
+        prompt = """你精通简历分析，如果姓名中有中文,请只提取姓名中的中文,请把简历翻译成简体中文，并总结以下信息：姓名:name,电话:phone,邮件:mail,教育经历:edu,工作经验:exp,证书:cert,语言:language,标签:tag,个人技能总结:summary,
+        其中edu样式为: {"edu":{"master": {"university": "", "major": "", "start_date": "2020.07", "end_date":"2021.08"}, "bachelor": {}},
+        exp样式为: [{"company": "", "position": "", "start_date": "2021.09", "end_date":"2022.10", "responsibility": ""}, cert样式为:['高级软件工程师'], language样式为: ['英文','韩语'],
+        请翻译并总结信息,填充至各字段,标签是根据简历信息总结出来的,输出前15个,手机号只保留数字,start_date以及end_date中的年月都转换为英文的点,。语言请使用简体中文json格式返回。以下是简历:
         """
         ai = OpenAIClient1(api_key=os.environ["OPENAI_API_KEY"], prompt=prompt) 
 
         status = gr.Markdown.update()
         for k, file in enumerate(files):
-            base_text = '\n请把以上简历的内容翻译成简体中文,如果姓名中有中文,请只提取中文。'
+            base_text = ''
             text = ''
             with open(file.name, 'rb') as file:
                 reader = PdfReader(file)
@@ -490,24 +491,26 @@ class BaseLLMModel:
                     page = reader.pages[page_num]
                     text += page.extract_text()
             resp = ai.predict(text=text + base_text, clear=True)
-            d = json.loads(resp)
-            logging.info(f"{d=}")
-            name = d['name']
-            phone = d['phone']
-            phone = phone.split('/')[0]
-            mail = d.get('mail', d.get('email')).split('/')[0]
-            edu_json = json.dumps(d['edu'], ensure_ascii=False)
-            exp_json = json.dumps(d['exp'], ensure_ascii=False)
-            tag = ','.join(d['tag'])
-            summary = d['summary']
-
-            sql = """INSERT INTO resume_detail (name, phone, mail, edu, exp, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
             try:
-                store.execute(sql, name, phone, mail, edu_json, exp_json, tag, summary)
+                d = json.loads(resp)
+                logging.info(f"{d=}")
+                name = d['name']
+                phone = d['phone']
+                phone = phone.split('/')[0]
+                mail = d.get('mail', d.get('email')).split('/')[0]
+                edu_json = json.dumps(d['edu'], ensure_ascii=False)
+                exp_json = json.dumps(d['exp'], ensure_ascii=False)
+                tag = ','.join(d['tag'])
+                summary = d['summary']
+                cert = ','.join(d['cert']) if d['cert'] is not None else ''
+                language = ','.join(d['language']) if d['language'] is not None else ""
+
+                sql = """INSERT INTO resume_detail (name, phone, mail, edu, exp, cert, language, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                store.execute(sql, name, phone, mail, edu_json, exp_json, cert, language, tag, summary)
             except Exception as e:
                 print(f"第{k+1}个简历出错：{e}")
             status = i18n(f"完成第{k+1}个简历")
-            time.sleep(0.5)
+            time.sleep(1)
 
         return status
 
