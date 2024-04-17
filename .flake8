@@ -1,0 +1,14 @@
+[flake8]
+select = B,C,E,F,P,T4,W,B9
+indent-size = 2
+max-line-length = 120
+ignore = E402,F841,E501,W504,E504,E741,W605,E124,E731,W503,F821
+optional-ascii-coding = True
+
+exclude = 
+  .git,
+  __pycache__,
+  */__init__.py,
+  build,
+  dist,
+  */version.py

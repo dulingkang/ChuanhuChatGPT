@@ -15,6 +15,7 @@ import numpy as np
 import textwrap
 from PyPDF2 import PdfReader
 import time
+from datetime import datetime
 
 import aiohttp
 import colorama
@@ -470,8 +471,14 @@ class BaseLLMModel:
         self.table_name = d.get(table_name, '无')
         print(f"{self.table_name=}")
 
-    def handle_sql_upload(self, files):
-        prompt = """你精通简历分析，如果姓名中有中文,请只提取姓名中的中文,请把简历翻译成简体中文，并总结以下信息：姓名:name,电话:phone,邮件:mail,教育经历:edu,工作经验:exp,证书:cert,语言:language,标签:tag,个人技能总结:summary,
+    def handle_trainer_upload(self, files):
+        self.handle_sql_upload(files, True)
+
+    def handle_trainee_upload(self, files):
+        self.handle_sql_upload(files, False)
+
+    def handle_sql_upload(self, files, is_trainer=False):
+        prompt = """你精通简历分析，如果姓名中有中文,请只提取姓名中的中文,请把简历翻译成简体中文，并总结以下信息：姓名:name,性别:gender,电话:phone,邮件:mail,教育经历:edu,工作经验:exp,证书:cert,语言:language,标签:tag,个人技能总结:summary,
         其中edu样式为: {"edu":{"master": {"university": "", "major": "", "start_date": "2020.07", "end_date":"2021.08"}, "bachelor": {}},
         exp样式为: [{"company": "", "position": "", "start_date": "2021.09", "end_date":"2022.10", "responsibility": ""}, cert样式为:['高级软件工程师'], language样式为: ['英文','韩语'],
         请翻译并总结信息,填充至各字段,标签是根据简历信息总结出来的,输出前15个,手机号只保留数字,start_date以及end_date中的年月都转换为英文的点,。语言请使用简体中文json格式返回。以下是简历:
@@ -496,6 +503,7 @@ class BaseLLMModel:
                 logging.info(f"{d=}")
                 name = d['name']
                 phone = d['phone']
+                phone_type = "+852" if '+852' in phone else '+86'
                 phone = phone.split('/')[0]
                 mail = d.get('mail', d.get('email')).split('/')[0]
                 edu_json = json.dumps(d['edu'], ensure_ascii=False)
@@ -504,7 +512,30 @@ class BaseLLMModel:
                 summary = d['summary']
                 cert = ','.join(d['cert']) if d['cert'] is not None else ''
                 language = ','.join(d['language']) if d['language'] is not None else ""
+                gender = d.get('gender', 1)
 
+                if is_trainer:
+                    typ = 2
+                    headhunter_flag = 1
+                    hk_visa = 1
+                else:
+                    typ = 1
+                    headhunter_flag = 0
+                    hk_visa = 0
+                now = datetime.now()
+
+                user_sql = """
+                insert into user (type,email,password,name,account_id,phone_type,avatar,
+                phone,hk_visa,gender,balance,status,first_login_time,last_read_mesage_time,
+                created_at,updated_at,headhunter_flag,remark,account_type) values
+                (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """
+                store.execute(
+                    user_sql,typ,mail,'',name,phone,phone_type,'',
+                    phone,hk_visa,gender,0,1,now,now,now,now,
+                    headhunter_flag,'','Wechat'
+                )
+                
                 sql = """INSERT INTO resume_detail (name, phone, mail, edu, exp, cert, language, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
                 store.execute(sql, name, phone, mail, edu_json, exp_json, cert, language, tag, summary)
             except Exception as e:
