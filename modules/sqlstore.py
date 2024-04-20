@@ -200,7 +200,7 @@ def _get_pool_size():
 pool_size = _get_pool_size()
 if not pool_size:
   store = SQLStore(MYSQL['host'], MYSQL['user'], MYSQL['password'], MYSQL['db'],
-                   MYSQL['port'])
+                   MYSQL['port'], debug=False)
 else:
   store = PoolSQLStore(
     MYSQL['host'],
@@ -208,4 +208,5 @@ else:
     MYSQL['password'],
     MYSQL['db'],
     MYSQL['port'],
+    debug=False,
     pool_size=pool_size)

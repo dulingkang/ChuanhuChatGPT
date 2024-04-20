@@ -265,7 +265,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 "使用在线搜索"), value=False, elem_classes="switch-checkbox", elem_id="gr-websearch-cb", visible=False)
                             index_files = gr.Files(label=i18n(
                                 "上传"), type="file", file_types=[".pdf", ".docx", ".pptx", ".epub", ".xlsx", ".txt", "text", "image"], elem_id="upload-index-file", visible=False)
-                            resume_files = gr.Files(label=i18n("上传"), type="file", file_types=[".pdf"], elem_id="upload-resume-file")
+                            trainer_resume_files = gr.Files(label=i18n("Trainer简历上传"), type="file", file_types=[".pdf"], elem_id="upload-trainer-resume-file")
+                            trainee_resume_files = gr.Files(label=i18n("Trainee简历上传"), type="file", file_types=[".pdf"], elem_id="upload-trainee-resume-file")
                             two_column = gr.Checkbox(label=i18n(
                                 "双栏pdf"), value=advance_docs["pdf"].get("two_column", False), visible=False)
                             summarize_btn = gr.Button(i18n("总结"), visible=False)
@@ -599,7 +600,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
     index_files.upload(handle_file_upload, [current_model, index_files, chatbot, language_select_dropdown], [
                        index_files, chatbot, status_display])
-    resume_files.upload(handle_sql_upload, [current_model, resume_files], status_display)
+    trainer_resume_files.upload(handle_trainer_upload, [current_model, trainer_resume_files], status_display)
+    trainee_resume_files.upload(handle_trainee_upload, [current_model, trainee_resume_files], status_display)
     summarize_btn.click(handle_summarize_index, [
                         current_model, index_files, chatbot, language_select_dropdown], [chatbot, status_display])
 

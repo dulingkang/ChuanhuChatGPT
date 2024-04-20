@@ -15,7 +15,6 @@ import numpy as np
 import textwrap
 from PyPDF2 import PdfReader
 import time
-from datetime import datetime
 
 import aiohttp
 import colorama
@@ -43,7 +42,7 @@ os.environ['OPENAI_BASE_URL'] = 'https://api.chatanywhere.tech/v1'
 
 from .openai1 import OpenAIClient1
 from ..sqlstore import store
-
+from datetime import datetime as dt
 # db = superduper(db_str)
 # from superduperdb.backends.ibis.query import Table
 # from superduperdb.backends.ibis.field_types import dtype
@@ -472,10 +471,19 @@ class BaseLLMModel:
         print(f"{self.table_name=}")
 
     def handle_trainer_upload(self, files):
-        self.handle_sql_upload(files, True)
+        self.handle_sql_upload(files, is_trainer=True)
 
     def handle_trainee_upload(self, files):
-        self.handle_sql_upload(files, False)
+        self.handle_sql_upload(files, is_trainer=False)
+
+    def varify_date(self, s: str) -> str:
+      if '至今' in s:
+        now = datetime.now().strftime()
+        return now.strftime('%Y-%m-%d')
+      new_s = s.replace('.', '-').replace('年', '-')
+      if len(new_s.split('-')) == 2:
+        new_s = new_s + '-01'
+      return new_s
 
     def handle_sql_upload(self, files, is_trainer=False):
         prompt = """你精通简历分析，如果姓名中有中文,请只提取姓名中的中文,请把简历翻译成简体中文，并总结以下信息：姓名:name,性别:gender,电话:phone,邮件:mail,教育经历:edu,工作经验:exp,证书:cert,语言:language,标签:tag,个人技能总结:summary,
@@ -512,7 +520,8 @@ class BaseLLMModel:
                 summary = d['summary']
                 cert = ','.join(d['cert']) if d['cert'] is not None else ''
                 language = ','.join(d['language']) if d['language'] is not None else ""
-                gender = d.get('gender', 1)
+                gender = d.get('gender', '男')
+                gender = 1 if gender == '男' else 0
 
                 if is_trainer:
                     typ = 2
@@ -522,22 +531,118 @@ class BaseLLMModel:
                     typ = 1
                     headhunter_flag = 0
                     hk_visa = 0
-                now = datetime.now()
+                now = dt.now()
 
-                user_sql = """
-                insert into user (type,email,password,name,account_id,phone_type,avatar,
-                phone,hk_visa,gender,balance,status,first_login_time,last_read_mesage_time,
-                created_at,updated_at,headhunter_flag,remark,account_type) values
-                (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                user = store.execute(f"select id from user where email='{mail}'")
+                if user:
+                  user_id = user[0][0]
+                else:
+                  user_sql = """
+                  insert into user (type,email,password,name,account_id,phone_type,avatar,
+                  phone,hk_visa,gender,balance,status,first_login_time,last_read_message_time,
+                  created_at,updated_at,headhunter_flag,remark,account_type) values
+                  (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                  """
+                  user_id = store.execute(
+                      user_sql,typ,mail,'',name,phone,phone_type,'',
+                      phone,hk_visa,gender,0,1,now,now,now,now,
+                      headhunter_flag,'','Wechat'
+                  )
+                print(f'{user_id=}')
+
+                resume_sql = """
+                insert into resume (user_id,position,industry_id,salary_id,
+                show_count,intro,status,created_at,updated_at) values
+                (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """
-                store.execute(
-                    user_sql,typ,mail,'',name,phone,phone_type,'',
-                    phone,hk_visa,gender,0,1,now,now,now,now,
-                    headhunter_flag,'','Wechat'
-                )
+                resume_id = store.execute(
+                  resume_sql,user_id,
+                  'Research Analyst of Investment Strategy Department Manager',
+                  68,3,0, summary,1,now,now)
+                print(f"{resume_id=}")
+
+                exp_sql = """
+                insert into resume_work_experience (resume_id,position_name,begin_date,
+                is_online,end_date,industry_id,type,city,company_name,description,
+                status,created_at,updated_at) values
+                (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """
+                for exp in d['exp']:
+                  store.execute(
+                    exp_sql, resume_id, exp['position'], self.varify_date(exp['start_date']),
+                    0, self.varify_date(exp['end_date']), 68, 1, '', exp['company'],
+                    exp['responsibility'], 1, now, now  
+                  )
+                print("exp sql finish")
                 
-                sql = """INSERT INTO resume_detail (name, phone, mail, edu, exp, cert, language, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                store.execute(sql, name, phone, mail, edu_json, exp_json, cert, language, tag, summary)
+                edu_sql = """
+                insert into resume_education (resume_id,major,school,edu_level,
+                begin_date,end_date,grade,description,status,created_at,updated_at) values
+                (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """
+                if 'bachelor' in d['edu'] and d['edu']['bachelor'].get('university'):
+                  bachelor = d['edu']['bachelor']  # 应该使用 d['edu'] 而不是 edu_json
+                  store.execute(
+                      edu_sql, 
+                      resume_id, 
+                      bachelor['major'], 
+                      bachelor['university'],
+                      6, 
+                      self.varify_date(bachelor['start_date']), 
+                      self.varify_date(bachelor['end_date']), 
+                      '', '', 
+                      1, 
+                      now, 
+                      now
+                  )
+
+                if 'master' in d['edu'] and d['edu']['master'].get('university'):
+                  master = d['edu']['master']  # 同样，这里也应该使用 d['edu']
+                  store.execute(
+                      edu_sql, 
+                      resume_id, 
+                      master['major'], 
+                      master['university'],
+                      7, 
+                      self.varify_date(master['start_date']), 
+                      self.varify_date(master['end_date']), 
+                      '', '', 
+                      1, 
+                      now, 
+                      now
+                  )
+                print("edu finish.")
+                lang_id = 0
+                if '普通话' in language:
+                  lang_id = 2
+                elif '广东话' in language or '粤语' in language:
+                  lang_id = 1
+                elif '英文' in language or '英语' in language:
+                  lang_id = 3
+                if lang_id:
+                  lang_sql = """
+                  insert into resume_lang (resume_id,lang_id,type,status,created_at,updated_at) values
+                  (%s,%s,%s,%s,%s,%s)
+                  """
+                  store.execute(lang_sql, resume_id, lang_id, 4, 1, now, now)
+                print('lang finished.')
+                
+                if cert:
+                  cert_sql = """
+                  insert into resume_certification (resume_id, name, begin_date, end_date, term_year,
+                  is_long, institution, status, created_at, updated_at) values
+                  (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                  """
+                  for c in d['cert']:
+                    store.execute(
+                      cert_sql, resume_id, c, '', '', '', 
+                      0, 1, '', 1, now, now)
+                print('cert finished')
+                resume_detail_id = store.execute(f"select id from resume_detail where mail='{mail}'")
+                if not resume_detail_id:
+                  sql = """INSERT INTO resume_detail (name, phone, mail, edu, exp, cert, language, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                  store.execute(sql, name, phone, mail, edu_json, exp_json, cert, language, tag, summary)
+                print('all finished')
             except Exception as e:
                 print(f"第{k+1}个简历出错：{e}")
             status = i18n(f"完成第{k+1}个简历")

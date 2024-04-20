@@ -1,1 +1,2 @@
 user中password留空还是怎么处理
+既是 trainer 又是 trainee
