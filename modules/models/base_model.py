@@ -476,9 +476,9 @@ class BaseLLMModel:
     def handle_trainee_upload(self, files):
         self.handle_sql_upload(files, is_trainer=False)
 
-    def varify_date(self, s: str) -> str:
+    def verify_date(self, s: str) -> str:
       if '至今' in s:
-        now = datetime.now().strftime()
+        now = dt.now()
         return now.strftime('%Y-%m-%d')
       new_s = s.replace('.', '-').replace('年', '-')
       if len(new_s.split('-')) == 2:
@@ -488,14 +488,14 @@ class BaseLLMModel:
     def handle_sql_upload(self, files, is_trainer=False):
         prompt = """你精通简历分析，如果姓名中有中文,请只提取姓名中的中文,请把简历翻译成简体中文，并总结以下信息：姓名:name,性别:gender,电话:phone,邮件:mail,教育经历:edu,工作经验:exp,证书:cert,语言:language,标签:tag,个人技能总结:summary,
         其中edu样式为: {"edu":{"master": {"university": "", "major": "", "start_date": "2020.07", "end_date":"2021.08"}, "bachelor": {}},
-        exp样式为: [{"company": "", "position": "", "start_date": "2021.09", "end_date":"2022.10", "responsibility": ""}, cert样式为:['高级软件工程师'], language样式为: ['英文','韩语'],
-        请翻译并总结信息,填充至各字段,标签是根据简历信息总结出来的,输出前15个,手机号只保留数字,start_date以及end_date中的年月都转换为英文的点,。语言请使用简体中文json格式返回。以下是简历:
+        exp样式为: [{"company": "", "position": "", "start_date": "2021.09", "end_date":"2022.10", "responsibility": ""}, cert样式为:[''], language样式为: ['英文','韩语'],
+        请翻译并总结信息,填充至各字段,标签是根据简历信息总结出来的,输出前15个,手机号只保留数字,start_date以及end_date中的年月都转换为英文的点,。请移除换行符等多余字符,语言请使用简体中文json格式返回。以下是简历:
         """
         ai = OpenAIClient1(api_key=os.environ["OPENAI_API_KEY"], prompt=prompt) 
 
         status = gr.Markdown.update()
         for k, file in enumerate(files):
-            base_text = ''
+            base_text = '。语言请使用简体中文json格式返回。'
             text = ''
             with open(file.name, 'rb') as file:
                 reader = PdfReader(file)
@@ -537,6 +537,7 @@ class BaseLLMModel:
                 if user:
                   user_id = user[0][0]
                 else:
+                  password = 'bc2592871c1ac1f00a15cd7fc478c237'
                   user_sql = """
                   insert into user (type,email,password,name,account_id,phone_type,avatar,
                   phone,hk_visa,gender,balance,status,first_login_time,last_read_message_time,
@@ -544,22 +545,26 @@ class BaseLLMModel:
                   (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                   """
                   user_id = store.execute(
-                      user_sql,typ,mail,'',name,phone,phone_type,'',
+                      user_sql,typ,mail,password,name,phone,phone_type,'',
                       phone,hk_visa,gender,0,1,now,now,now,now,
                       headhunter_flag,'','Wechat'
                   )
-                print(f'{user_id=}')
+                logging.info(f'{user_id=}')
 
+                latest_exp = d['exp'][0] if len(d['exp']) > 0 else None
+                for p in d['exp']:
+                    if latest_exp is None or p['start_date'] > latest_exp['start_date']:
+                        latest_exp = p
+                latest_position = latest_exp['position'] if latest_exp is not None else ''
                 resume_sql = """
                 insert into resume (user_id,position,industry_id,salary_id,
                 show_count,intro,status,created_at,updated_at) values
                 (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """
                 resume_id = store.execute(
-                  resume_sql,user_id,
-                  'Research Analyst of Investment Strategy Department Manager',
+                  resume_sql,user_id,latest_position,
                   68,3,0, summary,1,now,now)
-                print(f"{resume_id=}")
+                logging.info(f"{resume_id=}")
 
                 exp_sql = """
                 insert into resume_work_experience (resume_id,position_name,begin_date,
@@ -569,9 +574,9 @@ class BaseLLMModel:
                 """
                 for exp in d['exp']:
                   store.execute(
-                    exp_sql, resume_id, exp['position'], self.varify_date(exp['start_date']),
-                    0, self.varify_date(exp['end_date']), 68, 1, '', exp['company'],
-                    exp['responsibility'], 1, now, now  
+                    exp_sql, resume_id, exp['position'], self.verify_date(exp['start_date']),
+                    0, self.verify_date(exp['end_date']), 68, 1, '', exp['company'],
+                    exp.get('responsibility', ''), 1, now, now  
                   )
                 print("exp sql finish")
                 
@@ -588,8 +593,8 @@ class BaseLLMModel:
                       bachelor['major'], 
                       bachelor['university'],
                       6, 
-                      self.varify_date(bachelor['start_date']), 
-                      self.varify_date(bachelor['end_date']), 
+                      self.verify_date(bachelor['start_date']), 
+                      self.verify_date(bachelor['end_date']), 
                       '', '', 
                       1, 
                       now, 
@@ -604,14 +609,14 @@ class BaseLLMModel:
                       master['major'], 
                       master['university'],
                       7, 
-                      self.varify_date(master['start_date']), 
-                      self.varify_date(master['end_date']), 
+                      self.verify_date(master['start_date']), 
+                      self.verify_date(master['end_date']), 
                       '', '', 
                       1, 
                       now, 
                       now
                   )
-                print("edu finish.")
+                logging.info("edu finish.")
                 lang_id = 0
                 if '普通话' in language:
                   lang_id = 2
@@ -625,26 +630,26 @@ class BaseLLMModel:
                   (%s,%s,%s,%s,%s,%s)
                   """
                   store.execute(lang_sql, resume_id, lang_id, 4, 1, now, now)
-                print('lang finished.')
+                logging.info('lang finished.')
                 
                 if cert:
                   cert_sql = """
-                  insert into resume_certification (resume_id, name, begin_date, end_date, term_year,
+                  insert into resume_certification (resume_id, name, term_year,
                   is_long, institution, status, created_at, updated_at) values
-                  (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                  (%s,%s,%s,%s,%s,%s,%s,%s)
                   """
                   for c in d['cert']:
                     store.execute(
-                      cert_sql, resume_id, c, '', '', '', 
+                      cert_sql, resume_id, c,
                       0, 1, '', 1, now, now)
-                print('cert finished')
+                logging.info('cert finished')
                 resume_detail_id = store.execute(f"select id from resume_detail where mail='{mail}'")
                 if not resume_detail_id:
                   sql = """INSERT INTO resume_detail (name, phone, mail, edu, exp, cert, language, tag, summary) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
                   store.execute(sql, name, phone, mail, edu_json, exp_json, cert, language, tag, summary)
-                print('all finished')
+                logging.info('all finished')
             except Exception as e:
-                print(f"第{k+1}个简历出错：{e}")
+                logging.info(f"第{k+1}个简历出错：{e}")
             status = i18n(f"完成第{k+1}个简历")
             time.sleep(1)
 
