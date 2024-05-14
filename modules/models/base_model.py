@@ -487,8 +487,8 @@ class BaseLLMModel:
 
     def handle_sql_upload(self, files, is_trainer=False):
         prompt = """你精通简历分析，如果姓名中有中文,请只提取姓名中的中文,请把简历翻译成简体中文，并总结以下信息：姓名:name,性别:gender,电话:phone,邮件:mail,教育经历:edu,工作经验:exp,证书:cert,语言:language,标签:tag,个人技能总结:summary,
-        其中edu样式为: {"edu":{"master": {"university": "", "major": "", "start_date": "2020.07", "end_date":"2021.08"}, "bachelor": {}},
-        exp样式为: [{"company": "", "position": "", "start_date": "2021.09", "end_date":"2022.10", "responsibility": ""}, cert样式为:[''], language样式为: ['英文','韩语'],
+        其中edu样式为: {"edu":{"master": {"university": "", "major": "", "start_date": "2020.07", "end_date":"2021.08"}, "bachelor": {}};
+        exp样式为: [{"company": "", "position": "", "start_date": "2021.09", "end_date":"2022.10", "all_content": ""}, all_content中把在公司的所有工作内容写上,以及项目经历中在此公司时间段内的工作内容也写上,不要省略,全部输出;cert样式为:[''], language样式为: ['英文','韩语'],
         请翻译并总结信息,填充至各字段,标签是根据简历信息总结出来的,输出前15个,手机号只保留数字,start_date以及end_date中的年月都转换为英文的点,。请移除换行符等多余字符,语言请使用简体中文json格式返回。以下是简历:
         """
         ai = OpenAIClient1(api_key=os.environ["OPENAI_API_KEY"], prompt=prompt) 
@@ -576,7 +576,7 @@ class BaseLLMModel:
                   store.execute(
                     exp_sql, resume_id, exp['position'], self.verify_date(exp['start_date']),
                     0, self.verify_date(exp['end_date']), 68, 1, '', exp['company'],
-                    exp.get('responsibility', ''), 1, now, now  
+                    exp.get('all_content', ''), 1, now, now
                   )
                 print("exp sql finish")
                 
