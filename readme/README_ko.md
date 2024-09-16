@@ -3,17 +3,17 @@
   <a title="Chinese" href="../README.md">简体中文</a> |  <a title="English" href="README_en.md">English</a> | <a title="Japanese" href="README_ja.md">日本語</a> | <a title="Russian" href="README_ru.md">Russian</a> | 한국어
 </div>
 
-<h1 align="center">川虎 Chat 🐯 Chuanhu Chat</h1>
+<h1 align="center">SDB Chat 🐯 Sdb Chat</h1>
 <div align="center">
-  <a href="https://github.com/GaiZhenBiao/ChuanhuChatGPT">
-    <img src="https://github.com/GaiZhenbiao/ChuanhuChatGPT/assets/70903329/aca3a7ec-4f1d-4667-890c-a6f47bf08f63" alt="Logo" height="156">
+  <a href="https://github.com/GaiZhenBiao/SdbChatGPT">
+    <img src="https://github.com/GaiZhenbiao/SdbChatGPT/assets/70903329/aca3a7ec-4f1d-4667-890c-a6f47bf08f63" alt="Logo" height="156">
   </a>
 
 <p align="center">
     <h3>ChatGPT/ChatGLM/LLaMA등의 LLM을 위한 가벼운 사용자 친화적 Web-UI</h3>
     <p align="center">
-      <a href="https://github.com/GaiZhenbiao/ChuanhuChatGPT/blob/main/LICENSE">
-        <img alt="Tests Passing" src="https://img.shields.io/github/license/GaiZhenbiao/ChuanhuChatGPT" />
+      <a href="https://github.com/GaiZhenbiao/SdbChatGPT/blob/main/LICENSE">
+        <img alt="Tests Passing" src="https://img.shields.io/github/license/GaiZhenbiao/SdbChatGPT" />
       </a>
       <a href="https://gradio.app/">
         <img alt="GitHub Contributors" src="https://img.shields.io/badge/Base-Gradio-fb7d1a?style=flat" />
@@ -22,7 +22,7 @@
         <img alt="GitHub pull requests" src="https://img.shields.io/badge/Telegram-Group-blue.svg?logo=telegram" />
       </a>
       <p>
-        GPT-4 지원 · 파일에 대한 채팅 · LLMs 로컬 배포 · 웹 검색 · Chuanhu Agent ·  파인튜닝
+        GPT-4 지원 · 파일에 대한 채팅 · LLMs 로컬 배포 · 웹 검색 · Sdb Agent ·  파인튜닝
       </p>
       <a href="https://www.youtube.com/watch?v=MtxS4XZWbJE"><strong>영상 튜토리얼</strong></a>
         ·
@@ -30,18 +30,18 @@
         ·
       <a href="https://www.youtube.com/watch?v=x-O1jjBqgu4"><strong>3.0 소개 & 튜토리얼</strong></a>
 	||
-      <a href="https://huggingface.co/spaces/JohnSmith9982/ChuanhuChatGPT"><strong>온라인 테스트</strong></a>
+      <a href="https://huggingface.co/spaces/JohnSmith9982/SdbChatGPT"><strong>온라인 테스트</strong></a>
       	·
-      <a href="https://huggingface.co/login?next=%2Fspaces%2FJohnSmith9982%2FChuanhuChatGPT%3Fduplicate%3Dtrue"><strong>원클릭 배포</strong></a>
+      <a href="https://huggingface.co/login?next=%2Fspaces%2FJohnSmith9982%2FSdbChatGPT%3Fduplicate%3Dtrue"><strong>원클릭 배포</strong></a>
     </p>
   </p>
 </div>
 
-[![Video Title](https://github.com/GaiZhenbiao/ChuanhuChatGPT/assets/51039745/0eee1598-c2fd-41c6-bda9-7b059a3ce6e7.jpg)](https://github.com/GaiZhenbiao/ChuanhuChatGPT/assets/51039745/0eee1598-c2fd-41c6-bda9-7b059a3ce6e7?autoplay=1)
+[![Video Title](https://github.com/GaiZhenbiao/SdbChatGPT/assets/51039745/0eee1598-c2fd-41c6-bda9-7b059a3ce6e7.jpg)](https://github.com/GaiZhenbiao/SdbChatGPT/assets/51039745/0eee1598-c2fd-41c6-bda9-7b059a3ce6e7?autoplay=1)
 
 ## ✨ 5.0 업데이트!
 
-![ChuanhuChat5update](https://github.com/GaiZhenbiao/ChuanhuChatGPT/assets/70903329/f2c2be3a-ea93-4edf-8221-94eddd4a0178)
+![SdbChat5update](https://github.com/GaiZhenbiao/SdbChatGPT/assets/70903329/f2c2be3a-ea93-4edf-8221-94eddd4a0178)
 
 
 <sup>New!</sup> 완전히 새로운 사용자 인터페이스! 반투명 유리효과를 지원합니다!
@@ -52,7 +52,7 @@
 
 <sup>New!</sup> 자동으로 대화 기록의 이름을 설정할 수 있습니다. (설정에서 활성화 필요).
 
-<sup>New!</sup> Chuanhu Chat는 이제 Chrome/Edge/Safari 등 브라우저를 지원하는 PWA입니다.
+<sup>New!</sup> Sdb Chat는 이제 Chrome/Edge/Safari 등 브라우저를 지원하는 PWA입니다.
 
 <sup>New!</sup> 아이콘들이 플랫폼에 맞게 조정되어, 더 자연스럽습니다.
 
@@ -75,14 +75,14 @@
 ## 사용 팁
 
 ### 💪 강력한 기능
-- **Chuanhu Assistant**: AutoGPT와 같이,문제를 자동으로 해결합니다.
+- **Sdb Assistant**: AutoGPT와 같이,문제를 자동으로 해결합니다.
 - **온라인 검색**: ChatGPT의 데이터가 너무 오래되었나요? LLM과 인터넷의 정보를 함께 사용하세요.
 - **Knowledge Base**: ChatGPT가 당신의 읽기 속도를 높여줍니다! 파일에 대해 질문하세요.
 - **LLM 로컬 배포**: 원클릭 LLM 배포로 당신만의 LLM을 가지세요.
 
 ### 🤖 시스템 프롬프트
 - 시스템 프롬프트를 통해 사전 조건을 설정하면 역할극을 효과적으로 할 수 있습니다.
-- ChuanhuChat는 프롬프트 프리셋을 제공합니다. `프롬프트 템플릿 불러오기`탭에서 프롬프트를 불러온 후 아래 리스트에서 원하는 프롬프트를 설정하세요.
+- SdbChat는 프롬프트 프리셋을 제공합니다. `프롬프트 템플릿 불러오기`탭에서 프롬프트를 불러온 후 아래 리스트에서 원하는 프롬프트를 설정하세요.
 
 ### 💬 기본 대화
 - 답변이 만족스럽지 않다면 `재생성` 버튼으로 다시 시도하거나  `이 라운드의 질문과 답변 삭제` 버튼을 사용할 수 있습니다.
@@ -124,22 +124,22 @@
 터미널에서 다음 명령을 실행합니다.
 
 ```shell
-git clone https://github.com/GaiZhenbiao/ChuanhuChatGPT.git
-cd ChuanhuChatGPT
+git clone https://github.com/GaiZhenbiao/SdbChatGPT.git
+cd SdbChatGPT
 pip install -r requirements.txt
 ```
 
 `config_example.json`의 복제본을 만들고, 이름을 `config.json`로 변경합니다, 이후 파일에서 API키와 다른 세팅들을 수정합니다.
 
 ```shell
-python ChuanhuChatbot.py
+python SdbChatbot.py
 ```
 
-브라우저가 자동으로 열리고 **Chuanhu Chat**를 사용해 ChatGPT 또는 다른 모델들을 사용할 수 있습니다.
+브라우저가 자동으로 열리고 **Sdb Chat**를 사용해 ChatGPT 또는 다른 모델들을 사용할 수 있습니다.
 
 > **참고**
 >
-> [wiki page](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程) 에서 자세한 정보를 확인하세요
+> [wiki page](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/使用教程) 에서 자세한 정보를 확인하세요
 
 
 ## 문제해결
@@ -148,7 +148,7 @@ python ChuanhuChatbot.py
 
 1. Github 웹 페이지의 `Download ZIP`버튼으로 최신 코드를 다운로드하거나 다음 코드를 사용하세요
    ```shell
-   git pull https://github.com/GaiZhenbiao/ChuanhuChatGPT.git main -f
+   git pull https://github.com/GaiZhenbiao/SdbChatGPT.git main -f
    ```
 2. 다음 코드로 종속성을 업데이트하세요
    ```
@@ -157,34 +157,34 @@ python ChuanhuChatbot.py
 
 보통 이 방법으로 문제가 해결됩니다.
 
-문제가 해결되지 않는다면 다음 페이지를 확인해보세요: [Frequently Asked Questions (FAQ)](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/常见问题)
+문제가 해결되지 않는다면 다음 페이지를 확인해보세요: [Frequently Asked Questions (FAQ)](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/常见问题)
 
 이 페이지에는 거의 대부분의 문제와 해결법이 있습니다. 자세히 읽어보세요
 
 ## 더 알아보기
 
-더 많은 정보가 [wiki](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki) 에 있습니다.
+더 많은 정보가 [wiki](https://github.com/GaiZhenbiao/SdbChatGPT/wiki) 에 있습니다.
 
-- [어떻게 번역에 기여하나요?](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/Localization)
-- [어떻게 이 프로젝트에 기여하나요?](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/贡献指南)
-- [어떻게 이 프로젝트를 인용하나요?](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用许可#如何引用该项目)
-- [업데이트 기록](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/更新日志)
-- [프로젝트 라이선스](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用许可)
+- [어떻게 번역에 기여하나요?](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/Localization)
+- [어떻게 이 프로젝트에 기여하나요?](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/贡献指南)
+- [어떻게 이 프로젝트를 인용하나요?](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/使用许可#如何引用该项目)
+- [업데이트 기록](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/更新日志)
+- [프로젝트 라이선스](https://github.com/GaiZhenbiao/SdbChatGPT/wiki/使用许可)
 
 ## Starchart
 
-[![Star History Chart](https://api.star-history.com/svg?repos=GaiZhenbiao/ChuanhuChatGPT&type=Date)](https://star-history.com/#GaiZhenbiao/ChuanhuChatGPT&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=GaiZhenbiao/SdbChatGPT&type=Date)](https://star-history.com/#GaiZhenbiao/SdbChatGPT&Date)
 
 ## 기여자들
 
-<a href="https://github.com/GaiZhenbiao/ChuanhuChatGPT/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=GaiZhenbiao/ChuanhuChatGPT" />
+<a href="https://github.com/GaiZhenbiao/SdbChatGPT/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=GaiZhenbiao/SdbChatGPT" />
 </a>
 
 ## 기부
 
 🐯 이 프로젝트가 도움이되었다면, 저에게 커피나 콜라를 사주세요~
 
-<a href="https://www.buymeacoffee.com/ChuanhuChat" ><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=ChuanhuChat&button_colour=219d53&font_colour=ffffff&font_family=Poppins&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" width="250"></a>
+<a href="https://www.buymeacoffee.com/SdbChat" ><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=SdbChat&button_colour=219d53&font_colour=ffffff&font_family=Poppins&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" width="250"></a>
 
 <img width="250" alt="image" src="https://user-images.githubusercontent.com/51039745/226920291-e8ec0b0a-400f-4c20-ac13-dafac0c3aeeb.JPG">

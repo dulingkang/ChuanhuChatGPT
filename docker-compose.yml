@@ -1,0 +1,10 @@
+version: '1'
+services:
+  sdb_chat:
+    image: dulingkang/chat:0.6
+    ports:
+      - '7860:7860'
+    command: ["python3", "-u", "/app/sdb_chat.py","2>&1", "|", "tee", "/var/log/application.log"]
+    environment: 
+      - dockerrun=yes
+      - db_str=mysql://power:1@127.0.0.1:3306/power

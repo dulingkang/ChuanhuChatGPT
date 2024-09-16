@@ -81,7 +81,7 @@ def commit_html():
     commit = commit_hash()
     if commit != "<none>":
         short_commit = commit[0:7]
-        commit_info = f'<a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/ChuanhuChatGPT/commit/{short_commit}">{short_commit}</a>'
+        commit_info = f'<a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/SdbChatGPT/commit/{short_commit}">{short_commit}</a>'
     else:
         commit_info = "unknown \U0001F615"
     return commit_info
@@ -102,9 +102,9 @@ def tag_html():
     if tag == "<none>":
         tag_info = "unknown \U0001F615"
     elif tag == "<edited>":
-        tag_info = f'<a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/ChuanhuChatGPT/releases/tag/{latest_tag}">{latest_tag}</a><span style="font-size:smaller">*</span>'
+        tag_info = f'<a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/SdbChatGPT/releases/tag/{latest_tag}">{latest_tag}</a><span style="font-size:smaller">*</span>'
     else:
-        tag_info = f'<a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/ChuanhuChatGPT/releases/tag/{tag}">{tag}</a>'
+        tag_info = f'<a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/SdbChatGPT/releases/tag/{tag}">{tag}</a>'
 
     return tag_info
 
@@ -123,7 +123,7 @@ def versions_html():
          • 
         Gradio: {gr.__version__}
          • 
-        <a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/ChuanhuChatGPT">ChuanhuChat</a>: {repo_version}
+        <a style="text-decoration:none;color:inherit" href="https://github.com/GaiZhenbiao/SdbChatGPT">SdbChat</a>: {repo_version}
         """
 
 
@@ -174,7 +174,7 @@ def get_latest_release():
         import requests
 
         release = requests.get(
-            "https://api.github.com/repos/GaiZhenbiao/ChuanhuChatGPT/releases/latest"
+            "https://api.github.com/repos/GaiZhenbiao/SdbChatGPT/releases/latest"
         ).json()
         tag = release["tag_name"]
         release_note = release["body"]
@@ -191,7 +191,7 @@ def get_tag_commit_hash(tag):
         import requests
 
         tags = requests.get(
-            "https://api.github.com/repos/GaiZhenbiao/ChuanhuChatGPT/tags"
+            "https://api.github.com/repos/GaiZhenbiao/SdbChatGPT/tags"
         ).json()
         commit_hash = [x["commit"]["sha"] for x in tags if x["name"] == tag][0]
     except Exception:
@@ -214,7 +214,7 @@ def repo_need_stash():
 
 
 def background_update():
-    # {git} fetch --all && ({git} pull https://github.com/GaiZhenbiao/ChuanhuChatGPT.git main -f || ({git} stash && {git} pull https://github.com/GaiZhenbiao/ChuanhuChatGPT.git main -f && {git} stash pop)) && {pip} install -r requirements.txt")
+    # {git} fetch --all && ({git} pull https://github.com/GaiZhenbiao/SdbChatGPT.git main -f || ({git} stash && {git} pull https://github.com/GaiZhenbiao/SdbChatGPT.git main -f && {git} stash pop)) && {pip} install -r requirements.txt")
     try:
         latest_release = get_latest_release()
         latest_release_tag = latest_release["tag"]
@@ -226,7 +226,7 @@ def background_update():
         current_branch = get_current_branch()
         updater_branch = f"tmp_{timestamp}"
         backup_branch = f"backup_{timestamp}"
-        track_repo = "https://github.com/GaiZhenbiao/ChuanhuChatGPT.git"
+        track_repo = "https://github.com/GaiZhenbiao/SdbChatGPT.git"
         try:
             try:
                 run(

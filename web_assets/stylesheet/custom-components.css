@@ -39,7 +39,7 @@
     z-index: var(--layer-top);
     transition: top 0.3s ease-out;
 }
-#check-chuanhu-update {
+#check-sdb-update {
     position: absolute;
     align-items: center;
     display: flex;

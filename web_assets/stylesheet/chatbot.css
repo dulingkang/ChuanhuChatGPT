@@ -38,7 +38,7 @@ hr.append-display {
     flex: 2;
 }
 
-/* 川虎助理 */
+/* SDB助理 */
 .agent-prefix {
     font-size: smaller; 
     opacity: 0.6;
@@ -57,7 +57,7 @@ hr.append-display {
 }
 
 /* 阻止generating时的border */
-#chuanhu-chatbot > .wrap {
+#sdb-chatbot > .wrap {
     border: none !important;
 }
 
@@ -94,7 +94,7 @@ hr.append-display {
 }
 
 /* 亮色（默认） */
-#chuanhu-chatbot {
+#sdb-chatbot {
     background-color: var(--chatbot-background-color-light) !important;
     color: var(--chatbot-color-light) !important;
 }
@@ -105,7 +105,7 @@ hr.append-display {
     background-color: var(--message-user-background-color-light) !important;
 }
 /* 暗色 */
-.dark #chuanhu-chatbot {
+.dark #sdb-chatbot {
     background-color: var(--chatbot-background-color-dark) !important;
     color: var(--chatbot-color-dark) !important;
 }
@@ -149,19 +149,19 @@ hr.append-display {
 /* 屏幕宽度大于等于500px的设备 */
 /* update on 2023.4.8: 高度的细致调整已写入JavaScript */
 @media screen and (min-width: 500px) {
-    /* #chuanhu-chatbot {
+    /* #sdb-chatbot {
         height: calc(100*var(--vh) - 200px);
     }
-    #chuanhu-chatbot>.wrapper>.wrap {
+    #sdb-chatbot>.wrapper>.wrap {
         max-height: calc(100*var(--vh) - 200px - var(--line-sm)*1rem - 2*var(--block-label-margin) );
     } */
 }
 /* 屏幕宽度小于500px的设备 */
 @media screen and (max-width: 499px) {
-    /* #chuanhu-chatbot {
+    /* #sdb-chatbot {
         height: calc(100*var(--vh) - 140px);
     }
-    #chuanhu-chatbot>.wrapper>.wrap {
+    #sdb-chatbot>.wrapper>.wrap {
         max-height: calc(100*var(--vh) - 140px - var(--line-sm)*1rem - 2*var(--block-label-margin) );
     } */
     [data-testid = "bot"] {
@@ -180,11 +180,11 @@ hr.append-display {
     }
 }
 
-#chuanhu-chatbot {
+#sdb-chatbot {
     height: calc(100*var(--vh) - 65px) !important;
     border-radius: 0;
 }
-#chuanhu-chatbot>.wrapper>.wrap {
+#sdb-chatbot>.wrapper>.wrap {
     overflow-x: hidden;
     display: flex;
     width: 100%;
@@ -193,10 +193,10 @@ hr.append-display {
     padding-top: 72px;
     padding-bottom: 180px;
 }
-#chuanhu-chatbot>.wrapper>.wrap .message-wrap {
+#sdb-chatbot>.wrapper>.wrap .message-wrap {
     align-self: center;
     width: 100%;
-    max-width: 1024px;
+    max-width: 3000px;
 }
 
 .message.user p {
@@ -253,7 +253,7 @@ hr.append-display {
 }
 
 /* custom buttons */
-.chuanhu-btn {
+.sdb-btn {
     border-radius: 5px;
     /* background-color: #E6E6E6 !important; */
     color: rgba(120, 120, 120, 0.64) !important;
@@ -261,14 +261,14 @@ hr.append-display {
     cursor: pointer !important;
     transition: color .2s ease, background-color .2s ease;
 }
-.chuanhu-btn:hover {
+.sdb-btn:hover {
     background-color: rgba(167, 167, 167, 0.25) !important;
     color: unset !important;
 }
-.chuanhu-btn:active {
+.sdb-btn:active {
     background-color: rgba(167, 167, 167, 0.5) !important;
 }
-.chuanhu-btn:focus {
+.sdb-btn:focus {
     outline: none;
 }
 
@@ -337,7 +337,7 @@ hr.append-display {
     display: none;
 }
 /* disable share button and other buttons in hugging face spaces */
-#chuanhu-chatbot > .wrapper > .icon-button {
+#sdb-chatbot > .wrapper > .icon-button {
     display: none !important;
 }
 
@@ -379,7 +379,7 @@ hr.append-display {
     font-size: 0.8em;
 }
 
-/* #chuanhu-chatbot {
+/* #sdb-chatbot {
     transition: height 0.3s ease;
     note: find it better without transition animation...;
 } */

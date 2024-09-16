@@ -116,6 +116,6 @@ function bgSelectHistory(a,b){
     return [a,file]
 }
 
-function bgRebootChuanhu() {
-    rebootChuanhuBtn.click()
+function bgRebootSdb() {
+    rebootSdbBtn.click()
 }
